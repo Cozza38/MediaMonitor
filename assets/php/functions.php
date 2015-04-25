@@ -499,129 +499,76 @@ function makeRecenlyViewed()
     echo '</div>';
 }
 
-function makeRecenlyReleased()
-{
-    // Various items are commented out as I was playing with what information to include.
-    global $plex_port;
-    global $plexToken;
-    $network = getNetwork();
-    $clientIP = get_client_ip();
-    $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/sections/11/newest/?X-Plex-Token=' . $plexToken);
-
-    //echo '<div class="col-md-10 col-sm-offset-1">';
-    echo '<div class="col-md-12">';
-    echo '<div id="carousel-example-generic" class=" carousel slide">';
-    echo '<div class="thumbnail">';
-    echo '<!-- Wrapper for slides -->';
-    echo '<div class="carousel-inner">';
-    echo '<div class="item active">';
-    $mediaKey = $plexNewestXML->Video[0]['key'];
-    $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-    $movieTitle = $mediaXML->Video['title'];
-    $movieArt = $mediaXML->Video['thumb'];
-    echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
-    echo '</div>'; // Close item div
-    $i = 1;
-    for (; ;) {
-        if ($i == 15) break;
-        $mediaKey = $plexNewestXML->Video[$i]['key'];
-        $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-        $movieTitle = $mediaXML->Video['title'];
-        $movieArt = $mediaXML->Video['thumb'];
-        $movieYear = $mediaXML->Video['year'];
-        echo '<div class="item">';
-        echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
-        //echo '<div class="carousel-caption">';
-        //echo '<h3>'.$movieTitle.$movieYear.'</h3>';
-        //echo '<p>Summary</p>';
-        //echo '</div>';
-        echo '</div>'; // Close item div
-        $i++;
-    }
-    echo '</div>'; // Close carousel-inner div
-    echo '</div>'; // Close thumbnail div
-    echo '<!-- Controls -->';
-    echo '<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">';
-    //echo '<span class="glyphicon glyphicon-chevron-left"></span>';
-    echo '</a>';
-    echo '<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">';
-    //echo '<span class="glyphicon glyphicon-chevron-right"></span>';
-    echo '</a>';
-    echo '</div>'; // Close carousel slide div
-    echo '</div>'; // Close column div
-}
-
 function makeRecentlyAdded()
 {
-    // Various items are commented out as I was playing with what information to include.
-    global $plex_port;
-    global $plexToken;
-    $network = getNetwork();
-    $clientIP = get_client_ip();
-    $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/recentlyAdded/?X-Plex-Token=' . $plexToken);
-	$plexNewestXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-    //echo '<div class="col-md-10 col-sm-offset-1">';
-    echo '<div class="col-md-12">';
-    echo '<div id="carousel-example-generic" class=" carousel slide">';
-    echo '<div class="thumbnail">';
-    echo '<!-- Wrapper for slides -->';
-    echo '<div class="carousel-inner">';
-    echo '<div class="item active">';
-    $mediaKey = $plexNewestXML->Directory[0]['parentKey'];
-    $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-    $movieTitle = $mediaXML->Directory['title'];
-    $movieArt = $mediaXML->Directory['thumb'];
-	// $episodeKey = $plexNewestXML->Directory[0]['key'];
-	// $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-	// $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-	// $lastEP = array_pop($episodeXML->Video);
-	// $summary = $lastEP->Video['summary'];
+  global $plex_port;
+  global $plexToken;
+  $network = getNetwork();
+  $clientIP = get_client_ip();
+  $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/recentlyAdded/?X-Plex-Token=' . $plexToken);
+  $plexNewestXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+  //echo '<div class="col-md-10 col-sm-offset-1">';
+  echo '<div class="col-md-12">';
+  echo '<div id="carousel-example-generic" class=" carousel slide">';
+  echo '<div class="thumbnail">';
+  echo '<!-- Wrapper for slides -->';
+  echo '<div class="carousel-inner">';
+  echo '<div class="item active">';
+  $mediaKey = $plexNewestXML->Directory[0]['parentKey'];
+  $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
+  $movieTitle = $mediaXML->Directory['title'];
+  $movieArt = $mediaXML->Directory['thumb'];
+  // $episodeKey = $plexNewestXML->Directory[0]['key'];
+  // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+  // $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+  // $lastEP = array_pop($episodeXML->Video);
+  // $summary = $lastEP->Video['summary'];
   if ($movieArt != null) {
     echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
   } else
   {
     echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.png">';
   }
-	// echo '<h3>' . $movieTitle . '</h3>';
-    // echo '<p>' . $summary . '</p>';
-	// var_dump($lastEP);
-    echo '</div>'; // Close item div
-    $i = 1;
-    for (; ;) {
-        if ($i == 15) break;
-		$mediaKey = $plexNewestXML->Directory[$i]['parentKey'];
-		$mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-		$movieTitle = $mediaXML->Directory['title'];
-		$movieArt = $mediaXML->Directory['thumb'];
-        $movieYear = $mediaXML->Directory['year'];
-		// $episodeKey = $plexNewestXML->Directory[$i]['key'];
-		// $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-		// $summary = $episodeXML->Video['summary'];
-        echo '<div class="item">';
-        if ($movieArt != null) {
-          echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
-        } else
-        {
-          echo '<img src="assets/img/placeholder.png">';
-        }
-        //echo '<div class="carousel-caption">';
-        // echo '<h3>' . $movieTitle . '</h3>';
-        // echo '<p>' . $summary . '</p>';
-        //echo '</div>';
-        echo '</div>'; // Close item div
-        $i++;
-    }
-    echo '</div>'; // Close carousel-inner div
-    echo '</div>'; // Close thumbnail div
-    echo '<!-- Controls -->';
-    echo '<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">';
-    //echo '<span class="glyphicon glyphicon-chevron-left"></span>';
-    echo '</a>';
-    echo '<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">';
-    //echo '<span class="glyphicon glyphicon-chevron-right"></span>';
-    echo '</a>';
-    echo '</div>'; // Close carousel slide div
-    echo '</div>'; // Close column div
+  // echo '<h3>' . $movieTitle . '</h3>';
+  // echo '<p>' . $summary . '</p>';
+  // var_dump($lastEP);
+  echo '</div>'; // Close item div
+  $i = 1;
+  for (; ;) {
+  if ($i == 15) break;
+  $mediaKey = $plexNewestXML->Directory[$i]['parentKey'];
+  $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
+  $movieTitle = $mediaXML->Directory['title'];
+  $movieArt = $mediaXML->Directory['thumb'];
+  $movieYear = $mediaXML->Directory['year'];
+  // $episodeKey = $plexNewestXML->Directory[$i]['key'];
+  // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+  // $summary = $episodeXML->Video['summary'];
+  echo '<div class="item">';
+  if ($movieArt != null) {
+    echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+  } else
+  {
+    echo '<img src="assets/img/placeholder.png">';
+  }
+  //echo '<div class="carousel-caption">';
+  // echo '<h3>' . $movieTitle . '</h3>';
+  // echo '<p>' . $summary . '</p>';
+  //echo '</div>';
+  echo '</div>'; // Close item div
+  $i++;
+  }
+  echo '</div>'; // Close carousel-inner div
+  echo '</div>'; // Close thumbnail div
+  echo '<!-- Controls -->';
+  echo '<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">';
+  //echo '<span class="glyphicon glyphicon-chevron-left"></span>';
+  echo '</a>';
+  echo '<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">';
+  //echo '<span class="glyphicon glyphicon-chevron-right"></span>';
+  echo '</a>';
+  echo '</div>'; // Close carousel slide div
+  echo '</div>'; // Close column div
 }
 
 function makeNowPlaying()
@@ -634,7 +581,6 @@ function makeNowPlaying()
     if (!$plexSessionXML):
         makeRecenlyViewed();
     elseif (count($plexSessionXML->Video) == 0):
-        // TODO clean this up makeRecenlyReleased();
         makeRecentlyAdded();
     else:
         $i = 0; // Initiate and assign a value to i & t

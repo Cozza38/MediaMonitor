@@ -27,7 +27,7 @@ endif;
 $services = array(
     new servicePlex("Plex", 32400, $plex_server_ip, $plex_server_ip, $plexToken),
 	//new service("pfSense", 8082, "http://d4rk.co:8082", "d4rk.co"),
-  	new serviceSAB("SABnzbd"", 8080, $sab_ip, "10.0.1.5"),
+  //	new serviceSAB("SABnzbd"", 8080, $sab_ip, "10.0.1.5"),
 //	new service("SickBeard", 8081, "http://d4rk.co:8081", "10.0.1.3"),
 //	new service("CouchPotato", 5050, "http://d4rk.co:5050", "10.0.1.3"),
 //	new service("Transmission", 9091, "http://d4rk.co:9091", "10.0.1.5"),
