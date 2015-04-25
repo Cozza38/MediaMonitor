@@ -138,8 +138,8 @@ $detect = new Mobile_Detect;
                             </h4>
                         </div>
                         <div class="panel-body">
-                            <!--	<img src="http://www.gravatar.com/avatar/ae73e9ef5eb134c74df655c0bbb1012a.png" class="img-rounded">
-                                <hr>	-->
+                            	<!-- <img src="assets/img/avatar.jpg" class="img-rounded">
+                                <hr> -->
                             <div id="left_column_top"></div>
                         </div>
                     </div>

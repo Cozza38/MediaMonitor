@@ -2,8 +2,8 @@
 
 $config_path = ROOT_DIR . '/config.ini'; //path to config file, recommend you place it outside of web root
 
-Ini_Set('display_errors', true);
-include '../../init.php';
+Ini_Set('display_errors', false);
+include(ROOT_DIR . '/init.php');
 
 include 'lib/phpseclib0.3.5/Net/SSH2.php';
 $config = parse_ini_file($config_path, true);
@@ -54,9 +54,6 @@ $apcupsd_path = $misc['apcupsd_path_to_bin'];
 
 // Disks
 $disk = $disks;
-
-//Services
-$services = $config['services'];
 
 // Set the path for the Plex Token
 $plexTokenCache = ROOT_DIR . '/assets/caches/plex_token.txt';
@@ -562,7 +559,7 @@ function makeRecentlyAdded()
     $network = getNetwork();
     $clientIP = get_client_ip();
     $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/recentlyAdded/?X-Plex-Token=' . $plexToken);
-
+	$plexNewestXML->registerXPathNamespace("a", XMLNS_SOAPENV);
     //echo '<div class="col-md-10 col-sm-offset-1">';
     echo '<div class="col-md-12">';
     echo '<div id="carousel-example-generic" class=" carousel slide">';
@@ -570,25 +567,46 @@ function makeRecentlyAdded()
     echo '<!-- Wrapper for slides -->';
     echo '<div class="carousel-inner">';
     echo '<div class="item active">';
-    $mediaKey = $plexNewestXML->Video[0]['key'];
+    $mediaKey = $plexNewestXML->Directory[0]['parentKey'];
     $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-    $movieTitle = $mediaXML->Video['title'];
-    $movieArt = $mediaXML->Video['thumb'];
+    $movieTitle = $mediaXML->Directory['title'];
+    $movieArt = $mediaXML->Directory['thumb'];
+	// $episodeKey = $plexNewestXML->Directory[0]['key'];
+	// $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+	// $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+	// $lastEP = array_pop($episodeXML->Video);
+	// $summary = $lastEP->Video['summary'];
+  if ($movieArt != null) {
     echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+  } else
+  {
+    echo '<img src="assets/img/placeholder.png">';
+  }
+	// echo '<h3>' . $movieTitle . '</h3>';
+    // echo '<p>' . $summary . '</p>';
+	// var_dump($lastEP);
     echo '</div>'; // Close item div
     $i = 1;
     for (; ;) {
         if ($i == 15) break;
-        $mediaKey = $plexNewestXML->Video[$i]['key'];
-        $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-        $movieTitle = $mediaXML->Video['title'];
-        $movieArt = $mediaXML->Video['thumb'];
-        $movieYear = $mediaXML->Video['year'];
+		$mediaKey = $plexNewestXML->Directory[$i]['parentKey'];
+		$mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
+		$movieTitle = $mediaXML->Directory['title'];
+		$movieArt = $mediaXML->Directory['thumb'];
+        $movieYear = $mediaXML->Directory['year'];
+		// $episodeKey = $plexNewestXML->Directory[$i]['key'];
+		// $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+		// $summary = $episodeXML->Video['summary'];
         echo '<div class="item">';
-        echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+        if ($movieArt != null) {
+          echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+        } else
+        {
+          echo '<img src="assets/img/placeholder.png">';
+        }
         //echo '<div class="carousel-caption">';
-        //echo '<h3>'.$movieTitle.$movieYear.'</h3>';
-        //echo '<p>Summary</p>';
+        // echo '<h3>' . $movieTitle . '</h3>';
+        // echo '<p>' . $summary . '</p>';
         //echo '</div>';
         echo '</div>'; // Close item div
         $i++;
