@@ -580,7 +580,7 @@ function makeRecentlyAdded()
     echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
   } else
   {
-    echo '<img src="assets/img/placeholder.png">';
+    echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.png">';
   }
 	// echo '<h3>' . $movieTitle . '</h3>';
     // echo '<p>' . $summary . '</p>';

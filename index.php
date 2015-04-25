@@ -119,6 +119,12 @@ $detect = new Mobile_Detect;
         }
 
         /* End of Ping ID hack */
+
+        .placeholderRecentlyAdded {
+            background-position: center;
+            background-size: cover;
+            box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
+        }
     </style>
     <link rel="apple-touch-icon-precomposed" href="/assets/ico/apple-touch-icon.png"/>
     <link rel="shortcut icon" href="assets/ico/favicon.ico">
