@@ -23,7 +23,7 @@ $detect = new Mobile_Detect;
     <link href="assets/fonts/stylesheet.css" rel="stylesheet">
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-wip/css/bootstrap.min.css">
-    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.0/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <style type="text/css">
         ::-webkit-scrollbar {
             display: none;
@@ -136,40 +136,36 @@ $detect = new Mobile_Detect;
             <div class="row">
                 <!-- Left sidebar -->
                 <div class="col-md-3" style="padding-top: 20px;">
-                    <!-- Online profiles -->
+                    <! -- Info -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title exoextralight">
+                                Online Profiles
+                            </h4>
+                        </div>
+                            <div class="panel-body">
+                                <ul class="nav nav-pills nav-stacked">
+                                <li><a href="https://www.otegamers.com" target="_blank"><i class="fa fa-globe"/></i> Home</a></li>
+                                <li><a href="https://plus.google.com/107636802520240837132/" target="_blank"><i class="fa fa-google-plus"></i> Google+</a></li>
+                                <li><a href="https://twitter.com/OTECozza" target="_blank"><i class="fa fa-twitter"></i> Twitter</a></li>
+                                <li><a href="http://www.twitch.tv/d3xtix/" target="_blank"><i class="fa fa-twitch"></i> Twitch</a></li>
+                                <li><a href="https://www.youtube.com/channel/UCwqn2n4hrKDqhb5_MOqyd7A" target="_blank"><i class="fa fa-youtube-play"></i> YouTube</a></li>
+                                <li><a href="#contactModal" data-toggle="modal"><i class="fa fa-envelope"></i> Contact</a></li>
+                                </ul>
+                                <!-- <div id="left_column_top"></div> -->
+                            </div>
+                    </div>
+                    <!-- Weather -->
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title exoextralight">
                                 Weather
                             </h4>
                         </div>
-                        <div class="panel-body">
-                            	<!-- <img src="assets/img/avatar.jpg" class="img-rounded">
-                                <hr> -->
-                            <div id="left_column_top"></div>
+                            <div class="panel-body">
+                                <div id="left_column_mid"></div>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Bandwidth -->
-                    <div class="panel panel-default" <?php showDiv('bandwidth')?>>
-                        <div class="panel-heading">
-                            <h4 class="panel-title exoextralight">
-                                Bandwidth
-                            </h4>
-                        </div>
-                        <div class="panel-body">
-                            <div id="bandwidth"></div>
-                        </div>
-                    </div>
-                    <!-- Services -->
-                    <div class="panel panel-default" <?php showDiv('services')?>>
-                        <div class="panel-heading">
-                            <h4 class="panel-title exoextralight">
-                                Services
-                            </h4>
-                        </div>
-                        <div id="services" class="panel-body">
-                        </div>
-                    </div>
                 </div>
                 <!-- Center Area -->
                 <div class="col-md-6">
@@ -217,18 +213,14 @@ $detect = new Mobile_Detect;
                         <div id="disk_space" style="margin-bottom:-10px"></div>
                     </div>
                 </div>
-                <!-- UPS Panel -->
-                <div class="panel panel-default" <?php showDiv('ups')?> >
+                <!-- Services -->
+                <div class="panel panel-default" <?php showDiv('services')?>>
                     <div class="panel-heading">
                         <h4 class="panel-title exoextralight">
-                            UPS
+                            Services
                         </h4>
                     </div>
-                    <div class="panel-body">
-                        <div id="ups_status" style="margin-bottom:-10px">
-
-                        </div>
-                    </div>
+                    <div id="services" class="panel-body"></div>
                 </div>
             </div>
         </div>
@@ -275,7 +267,7 @@ $detect = new Mobile_Detect;
             $.ajaxSetup({
                 cache: false,
                 beforeSend: function () {
-                    $('#left_column_top').show();
+                    $('#left_column_mid').show();
                     $('#bandwidth').show();
                     $('#ping').show();
                     $('#services').show();
@@ -287,7 +279,7 @@ $detect = new Mobile_Detect;
                     $('#ups_status').show();
                 },
                 complete: function () {
-                    $('#left_column_top').show();
+                    $('#left_column_mid').show();
                     $('#bandwidth').show();
                     $('#ping').show();
                     $('#services').show();
@@ -299,7 +291,7 @@ $detect = new Mobile_Detect;
                     $('#ups_status').show();
                 },
                 success: function () {
-                    $('#left_column_top').show();
+                    $('#left_column_mid').show();
                     $('#bandwidth').show();
                     $('#ping').show();
                     $('#services').show();
@@ -314,7 +306,7 @@ $detect = new Mobile_Detect;
 
             // Assign varibles to DOM sections
             var $plex_check_refresh = $('#plex_check');
-            var $left_column_top_refresh = $('#left_column_top');
+            var $left_column_mid_refresh = $('#left_column_mid');
             var $bandwidth_refresh = $('#bandwidth');
             var $ping_refresh = $('#ping');
             var $services_refresh = $('#services');
@@ -329,7 +321,7 @@ $detect = new Mobile_Detect;
             $now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
             $now_playing_refresh.load("assets/php/now_playing_ajax.php");
             $plex_check_refresh.load('assets/php/plex_check_ajax.php');
-            $left_column_top_refresh.load('assets/php/left_column_top_ajax.php');
+            $left_column_mid_refresh.load('assets/php/left_column_mid_ajax.php');
             $bandwidth_refresh.load("assets/php/bandwidth_ajax.php");
             $ping_refresh.load("assets/php/ping_ajax.php");
             $services_refresh.load("assets/php/services_ajax.php");
@@ -362,7 +354,8 @@ $detect = new Mobile_Detect;
             }, 120000); // 2 minutes
 
             var refreshtopleft = setInterval(function () {
-                $left_column_top_refresh.load('assets/php/left_column_top_ajax.php');
+                $left_column_mid
+                _refresh.load('assets/php/left_column_mid_ajax.php');
             }, 300000); // 5 minutes
 
             // Load these sections only if Plex has changed states
@@ -389,7 +382,7 @@ $detect = new Mobile_Detect;
                         success: function (res, code, xhr) {
                             localStorage["resourcemodified"] = xhr.getResponseHeader("Last-Modified");
                             console.log("Updating our cache and refreshing appropriate divs.");
-                            $left_column_top_refresh.load('assets/php/left_column_top_ajax.php');
+                            $left_column_mid_refresh.load('assets/php/left_column_mid_ajax.php');
                             $now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
                             $now_playing_refresh.load("assets/php/now_playing_ajax.php");
                             $transcodeSessions.load("assets/php/transcode_sessions_ajax.php");

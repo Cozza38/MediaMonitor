@@ -1,8 +1,9 @@
 <?php
 
-$config_path = ROOT_DIR . '/config.ini'; //path to config file, recommend you place it outside of web root
+$config_path = ROOT_DIR . '../private/config.ini'; //path to config file, recommend you place it outside of web root
 
 Ini_Set('display_errors', false);
+
 include(ROOT_DIR . '/init.php');
 
 include 'lib/phpseclib0.3.5/Net/SSH2.php';
@@ -49,8 +50,15 @@ $weather_always_display = $misc['weather_always_display'];
 $weather_lat = $misc['weather_lat'];
 $weather_long = $misc['weather_long'];
 $weather_name = $misc['weather_name'];
+$weather_units = $misc['weather_units'];
 $ping_ip = $misc['ping_ip'];
+$timezone = $misc['timezone'];
 $apcupsd_path = $misc['apcupsd_path_to_bin'];
+
+// Timezone
+if ($timezone != ""){
+date_default_timezone_set($timezone);
+}
 
 // Disks
 $disk = $disks;
@@ -99,7 +107,6 @@ function win_load_avg()
 
 function isWin()
 {
-
     global $serverOs;
     global $serverWin;
     if ($serverOs == $serverWin) {
@@ -110,7 +117,6 @@ function isWin()
 
 function isMac()
 {
-
     global $serverOs;
     global $serverMac;
     if ($serverOs == $serverMac) {
@@ -121,7 +127,6 @@ function isMac()
 
 function isNix()
 {
-
     global $serverOs;
     global $serverNix;
     if ($serverOs == $serverNix) {
@@ -145,59 +150,12 @@ function isLocal($ipAddress)
 
 function showDiv($div)
 {
-    global $apcupsd_server_ip;
-    global $local_pfsense_ip;
-
+    // global $apcupsd_server_ip;
+    // global $local_pfsense_ip;
     switch ($div) {
-        case 'ups':
-            if (empty($apcupsd_server_ip)) {
-                echo "style=\"display: none;\"";
-            }
         case 'services':
             break;
-        case 'bandwidth':
-            if (empty($local_pfsense_ip)) {
-                echo "style=\"display: none;\"";
-            }
     }
-}
-
-function makeUpsBars()
-{
-    printBar(findUpsValue('LOADPCT'), 'Load');
-    printBar(findUpsValue('BCHARGE'), 'Battery Level');
-}
-
-function findUpsValue($valToFind)
-{
-    global $apcupsd_username;
-    global $apcupsd_password;
-    global $apcupsd_server_ip;
-    global $apcupsd_path;
-
-    if (isLocal($apcupsd_server_ip)) {
-        if (isWin()) {
-            $dump = shell_exec($apcupsd_path . '\apcaccess.exe -u');
-        } else {
-            $dump = shell_exec('apcaccess -u');
-        }
-    } else {
-        $ssh = new Net_SSH2($apcupsd_server_ip);
-        if (!$ssh->login($apcupsd_username, $apcupsd_password)) {
-            //exit('Login Failed');
-            return array(0, 0);
-        }
-        $dump = $ssh->exec('apcaccess -u');
-    }
-    $output = preg_split('/[\n]/', $dump);
-    foreach ($output as $item) {
-        $checkFor = strpos($item, $valToFind);
-        if ($checkFor !== false) {
-            $item = preg_split('/:/', $item);
-            return $item[1];
-        }
-    }
-    return array(0, 0);
 }
 
 function makeTotalDiskSpace()
@@ -486,89 +444,81 @@ function makeRecenlyViewed()
             $thumbFromTrakt = file_get_contents($trakt_url);
             file_put_contents($traktThumb, $thumbFromTrakt, LOCK_EX);
             echo '<img src="' . $network . '/assets/caches/thumbnails/all-tvthumb.jpg" alt="trakt.tv" class="img-responsive"></a>';
-
         }
-    }
-    // This checks to see if you are inside your local network. If you are it gives you the forecast as well.
-    if ($clientIP == $local_pfsense_ip && count($plexSessionXML->Video) == 0) {
-        echo '<hr>';
-        echo '<h1 class="exoextralight" style="margin-top:5px;">';
-        echo 'Forecast</h1>';
-        echo '<iframe id="forecast_embed" type="text/html" frameborder="0" height="245" width="100%" src="http://forecast.io/embed/#lat=' . $weather_lat . '&lon=' . $weather_long . '&name=' . $weather_name . '"> </iframe>';
     }
     echo '</div>';
 }
 
 function makeRecentlyAdded()
 {
-  global $plex_port;
-  global $plexToken;
-  $network = getNetwork();
-  $clientIP = get_client_ip();
-  $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/recentlyAdded/?X-Plex-Token=' . $plexToken);
-  $plexNewestXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-  //echo '<div class="col-md-10 col-sm-offset-1">';
-  echo '<div class="col-md-12">';
-  echo '<div id="carousel-example-generic" class=" carousel slide">';
-  echo '<div class="thumbnail">';
-  echo '<!-- Wrapper for slides -->';
-  echo '<div class="carousel-inner">';
-  echo '<div class="item active">';
-  $mediaKey = $plexNewestXML->Directory[0]['parentKey'];
-  $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-  $movieTitle = $mediaXML->Directory['title'];
-  $movieArt = $mediaXML->Directory['thumb'];
-  // $episodeKey = $plexNewestXML->Directory[0]['key'];
-  // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-  // $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-  // $lastEP = array_pop($episodeXML->Video);
-  // $summary = $lastEP->Video['summary'];
-  if ($movieArt != null) {
-    echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
-  } else
-  {
-    echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.png">';
-  }
-  // echo '<h3>' . $movieTitle . '</h3>';
-  // echo '<p>' . $summary . '</p>';
-  // var_dump($lastEP);
-  echo '</div>'; // Close item div
-  $i = 1;
-  for (; ;) {
-  if ($i == 15) break;
-  $mediaKey = $plexNewestXML->Directory[$i]['parentKey'];
-  $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-  $movieTitle = $mediaXML->Directory['title'];
-  $movieArt = $mediaXML->Directory['thumb'];
-  $movieYear = $mediaXML->Directory['year'];
-  // $episodeKey = $plexNewestXML->Directory[$i]['key'];
-  // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-  // $summary = $episodeXML->Video['summary'];
-  echo '<div class="item">';
-  if ($movieArt != null) {
-    echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
-  } else
-  {
-    echo '<img src="assets/img/placeholder.png">';
-  }
-  //echo '<div class="carousel-caption">';
-  // echo '<h3>' . $movieTitle . '</h3>';
-  // echo '<p>' . $summary . '</p>';
-  //echo '</div>';
-  echo '</div>'; // Close item div
-  $i++;
-  }
-  echo '</div>'; // Close carousel-inner div
-  echo '</div>'; // Close thumbnail div
-  echo '<!-- Controls -->';
-  echo '<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">';
-  //echo '<span class="glyphicon glyphicon-chevron-left"></span>';
-  echo '</a>';
-  echo '<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">';
-  //echo '<span class="glyphicon glyphicon-chevron-right"></span>';
-  echo '</a>';
-  echo '</div>'; // Close carousel slide div
-  echo '</div>'; // Close column div
+    global $plex_port;
+    global $plexToken;
+    $network = getNetwork();
+    $clientIP = get_client_ip();
+    $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/recentlyAdded/?X-Plex-Token=' . $plexToken);
+    $plexNewestXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+    //echo '<div class="col-md-10 col-sm-offset-1">';
+    echo '<div class="col-md-12">';
+    echo '<div id="carousel-example-generic" class=" carousel slide">';
+    echo '<div class="thumbnail">';
+    echo '<!-- Wrapper for slides -->';
+    echo '<div class="carousel-inner">';
+    echo '<div class="item active">';
+    $mediaKey = $plexNewestXML->Directory[0]['parentKey'];
+    $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
+    $movieTitle = $mediaXML->Directory['title'];
+    $movieArt = $mediaXML->Directory['thumb'];
+    // $episodeKey = $plexNewestXML->Directory[0]['key'];
+    // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+    // $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+    // $lastEP = array_pop($episodeXML->Video);
+    // $summary = $lastEP->Video['summary'];
+
+    if ($movieArt != null) {
+        echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+    } else {
+        echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.jpg">';
+    }
+    // echo '<h3>' . $movieTitle . '</h3>';
+    // echo '<p>' . $summary . '</p>';
+    // var_dump($lastEP);
+    echo '</div>'; // Close item div
+
+    $i = 1;
+    for (; ;) {
+        if ($i == 15) break;
+        $mediaKey = $plexNewestXML->Directory[$i]['parentKey'];
+        $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
+        $movieTitle = $mediaXML->Directory['title'];
+        $movieArt = $mediaXML->Directory['thumb'];
+        $movieYear = $mediaXML->Directory['year'];
+        // $episodeKey = $plexNewestXML->Directory[$i]['key'];
+        // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+        // $summary = $episodeXML->Video['summary'];
+        echo '<div class="item">';
+        if ($movieArt != null) {
+            echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+        } else {
+            echo '<img src="assets/img/placeholder.jpg">';
+        }
+        //echo '<div class="carousel-caption">';
+        // echo '<h3>' . $movieTitle . '</h3>';
+        // echo '<p>' . $summary . '</p>';
+        //echo '</div>';
+        echo '</div>'; // Close item div
+        $i++;
+    }
+    echo '</div>'; // Close carousel-inner div
+    echo '</div>'; // Close thumbnail div
+    echo '<!-- Controls -->';
+    echo '<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">';
+    //echo '<span class="glyphicon glyphicon-chevron-left"></span>';
+    echo '</a>';
+    echo '<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">';
+    //echo '<span class="glyphicon glyphicon-chevron-right"></span>';
+    echo '</a>';
+    echo '</div>'; // Close carousel slide div
+    echo '</div>'; // Close column div
 }
 
 function makeNowPlaying()
@@ -722,103 +672,6 @@ function getTranscodeSessions()
     endif;
 }
 
-function makeBandwidthBars($interface)
-{
-    $array = getBandwidth($interface);
-    $dPercent = sprintf('%.0f', ($array[0] / 50) * 100);
-    $uPercent = sprintf('%.0f', ($array[1] / 10) * 100);
-    printBandwidthBar($dPercent, 'Download', $array[0]);
-    printBandwidthBar($uPercent, 'Upload', $array[1]);
-}
-
-function getBandwidth($interface)
-{
-    // For this to work with pfSense you have to have vnstat package installed and
-    // you need to change the -i rl0 to the name of your interface for WAN e.g. -i <interface>
-    // You will also probably need to do a var_dump of $output below and figure out exactly which array
-    // values you need as they might be off by one or two each.
-    global $local_pfsense_ip;
-    global $pfSense_username;
-    global $pfSense_password;
-    if (isLocal($local_pfsense_ip)) {
-        $dump = shell_exec('vnstat -i ' . $interface . ' -tr');
-    } else {
-        $ssh = new Net_SSH2($local_pfsense_ip);
-        if (!$ssh->login($pfSense_username, $pfSense_password)) {
-            //exit('Login Failed');
-            return array(0, 0);
-        }
-
-        $dump = $ssh->exec('vnstat -i ' . $interface . ' -tr');
-    }
-    $output = preg_split('/[,;| \s]/', $dump);
-    for ($i = count($output) - 1; $i >= 0; $i--) {
-        if ($output[$i] == '') unset ($output[$i]);
-    }
-    $output = array_values($output);
-    $rxRate = $output[51];
-    $rxFormat = $output[52];
-    $txRate = $output[56];
-    $txFormat = $output[57];
-    if ($rxFormat == 'kbit/s') {
-        $rxRateMB = $rxRate / 1024;
-    } else {
-        $rxRateMB = $rxRate;
-    }
-    if ($txFormat == 'kbit/s') {
-        $txRateMB = $txRate / 1024;
-    } else {
-        $txRateMB = $txRate;
-    }
-    return array($rxRateMB, $txRateMB);
-}
-
-function getPing($destinationIP)
-{
-    // This will work with any pfSense install. $sourceIP is the IP address of the WAN that you want to
-    // use to ping with. This allows you to ping the same address from multiple WANs if you need to.
-
-    global $local_pfsense_ip;
-    global $pfSense_username;
-    global $pfSense_password;
-
-    if (isLocal($local_pfsense_ip)) {
-        $terminal_output = shell_exec('ping -c 5 -q ' . $destinationIP);
-    } else {
-        $ssh = new Net_SSH2($local_pfsense_ip);
-        if (!$ssh->login($pfSense_username, $pfSense_password)) {
-            //exit('Login Failed');
-            return array(0, 0);
-        }
-        $terminal_output = $ssh->exec('ping -c 5 -q ' . $destinationIP);
-    }
-    // If using something besides OS X you might want to customize the following variables for proper output of average ping.
-    $findme_start = '= ';
-    $start = strpos($terminal_output, $findme_start);
-    $ping_return_value_str = substr($terminal_output, ($start + 2), 100);
-    $findme_stop1 = '.';
-    $stop = strpos($ping_return_value_str, $findme_stop1);
-    $findme_avgPing_decimal = '.';
-    $avgPing_decimal = strpos($ping_return_value_str, $findme_avgPing_decimal, 6);
-    $findme_forward_slash = '/';
-    $avgPing_forward_slash = strpos($ping_return_value_str, $findme_forward_slash);
-    $avgPing = substr($ping_return_value_str, ($stop + 5), ($avgPing_decimal - $avgPing_forward_slash - 1));
-    return $avgPing;
-}
-
-function printBandwidthBar($percent, $name = "", $Mbps)
-{
-    if ($name != "") echo '<!-- ' . $name . ' -->';
-    echo '<div class="exolight">';
-    if ($name != "")
-        echo $name . ": ";
-    echo number_format($Mbps, 2) . " Mbps";
-    echo '<div class="progress">';
-    echo '<div class="progress-bar" style="width: ' . $percent . '%"></div>';
-    echo '</div>';
-    echo '</div>';
-}
-
 //function getPlexToken()
 //{
 //    global $plex_username;
@@ -852,8 +705,10 @@ function makeWeatherSidebar()
     global $forecast_api;
     global $weather_lat;
     global $weather_long;
+    global $weather_units;
+
     $forecastExcludes = '?exclude=flags'; // Take a look at https://developer.forecast.io/docs/v2 to configure your weather information.
-    $currentForecast = json_decode(file_get_contents('https://api.forecast.io/forecast/' . $forecast_api . '/' . $weather_lat . ',' . $weather_long . $forecastExcludes));
+    $currentForecast = json_decode(file_get_contents('https://api.forecast.io/forecast/' . $forecast_api . '/' . $weather_lat . ',' . $weather_long . $forecastExcludes . '&units=' . $weather_units));
 
     $currentSummary = $currentForecast->currently->summary;
     $currentSummaryIcon = $currentForecast->currently->icon;
@@ -917,7 +772,13 @@ function makeWeatherSidebar()
     echo '</ul>';
     if ($currentWindSpeed > 0) {
         $direction = getDir($currentWindBearing);
-        echo '<h4 class="exoextralight" style="margin-top:0px">Wind: ' . $currentWindSpeed . ' mph from the ' . $direction . '</h4>';
+        if ($weather_units == si) {
+            echo '<h4 class="exoextralight" style="margin-top:0px">Wind: ' . $currentWindSpeed . ' m/s from the ' . $direction . '</h4>';
+        } else if ($weather_units != us and $weather_units != uk) {
+            echo '<h4 class="exoextralight" style="margin-top:0px">Wind: ' . $currentWindSpeed . ' km/h from the ' . $direction . '</h4>';
+        } else {
+            echo '<h4 class="exoextralight" style="margin-top:0px">Wind: ' . $currentWindSpeed . ' mph from the ' . $direction . '</h4>';
+        }
     } else {
         echo '<h4 class="exoextralight" style="margin-top:0px">Wind: Calm</h4>';
     }
@@ -928,7 +789,7 @@ function makeWeatherSidebar()
     echo '<h4 class="exoregular">The Sun</h4>';
     echo '<h5 class="exoextralight" style="margin-top:10px">' . $rises . ' at ' . date('g:i A', $sunriseTime) . '</h5>';
     echo '<h5 class="exoextralight" style="margin-top:10px">' . $sets . ' at ' . date('g:i A', $sunsetTime) . '</h5>';
-    echo '<p class="text-right no-link-color" style="margin-bottom:-10px"><small><a href="http://forecast.io/#/f/' . $weather_lat . ',' . $weather_long . '">Forecast.io</a></small></p> ';
+    // echo '<p class="text-right no-link-color" style="margin-bottom:-10px"><small><a href="http://forecast.io/#/f/' . $weather_lat . ',' . $weather_long . '">Forecast.io</a></small></p> ';
 }
 
 ?>

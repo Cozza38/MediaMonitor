@@ -3,7 +3,7 @@
 	Ini_Set( 'display_errors', true );
 	include '../../init.php';
 	include ROOT_DIR . '/assets/php/functions.php';
-	
+
 
 		makeWeatherSidebar();
 		echo '<ul class="nav nav-pills nav-stacked">';
