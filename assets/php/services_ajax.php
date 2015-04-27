@@ -15,7 +15,7 @@
 	        });
 	</script>
 <?php
-$sabnzbdXML = simplexml_load_file('http://'.$sab_ip.':'.$sab_port.'/api?mode=qstatus&output=xml&apikey='.$sabnzbd_api);
+$sabnzbdXML = simplexml_load_file('https://'.$sab_ip.':'.$sab_port.'/api?mode=qstatus&output=xml&apikey='.$sabnzbd_api);
 
 if (($sabnzbdXML->state) == 'Downloading'):
 	$timeleft = $sabnzbdXML->timeleft;
@@ -25,13 +25,10 @@ else:
 endif;
 
 $services = array(
-	new servicePlex("Plex", $plex_port, $plex_server_ip, $plex_server_ip, $plexToken),
-	//  new service("pfSense", 8082, "http://d4rk.co:8082", "d4rk.co"),
-	//  new serviceSAB("SABnzbd"", $sab_port, $sab_ip, $sab_ip),
+	new servicePlex("Plex", $plex_port, ('http://' . $wan_domain . ':' . $plex_port . '/web'), $plex_server_ip, $plexToken),
+	new serviceSAB("SABnzbd", $sab_port, ('https://' . $domain_name . '/sabnzbd'), $sab_ip),
 	//	new service("SickBeard", 8081, "http://d4rk.co:8081", "10.0.1.3"),
-	//	new service("CouchPotato", 5050, "http://d4rk.co:5050", "10.0.1.3"),
-	//	new service("Transmission", 9091, "http://d4rk.co:9091", "10.0.1.5"),
-	//	new service("iTunes Server", 3689, "http://www.apple.com/itunes/"),
+	//	new serviceCouch("CouchPotato", $couch_port, ('https://' . $domain_name . '/movies') , $couch_ip),
 	//  new service("Starbound Server", 21025, "http://playstarbound.com"),
 );
 ?>

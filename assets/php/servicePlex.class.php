@@ -21,7 +21,7 @@ class servicePlex
 
     function check_port()
     {
-        $conn = simplexml_load_file('http://' . $this->url . ':' . $this->port . '/?X-Plex-Token=' . $this->plexToken);
+        $conn = simplexml_load_file('http://' . $this->host . ':' . $this->port . '/?X-Plex-Token=' . $this->plexToken);
         if ($conn != null) {
             return true;
         } else

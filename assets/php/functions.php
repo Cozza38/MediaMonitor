@@ -6,29 +6,24 @@ Ini_Set('display_errors', false);
 
 include(ROOT_DIR . '/init.php');
 
-include 'lib/phpseclib0.3.5/Net/SSH2.php';
+// include 'lib/phpseclib0.3.5/Net/SSH2.php';
 $config = parse_ini_file($config_path, true);
 $network = $config['network'];
 $credentials = $config['credentials'];
 $api_keys = $config['api_keys'];
 $sabnzbd = $config['sabnzbd'];
 $misc = $config['misc'];
+$weather = $config['weather'];
 $disks = $config['disks'];
 
 // Import variables from config file
 // Network
-$local_pfsense_ip = $network['local_pfsense_ip'];
-$local_server_ip = $network['local_server_ip'];
-$apcupsd_server_ip = $network['apcupsd_server_ip'];
-$apcupsd_username = $network['apcupsd_username'];
-$apcupsd_password = $network['apcupsd_password'];
 $wan_domain = $network['wan_domain'];
+$domain_name = $network['domain_name'];
 $plex_server_ip = $network['plex_server_ip'];
 $plex_port = $network['plex_port'];
 
 // Credentials
-$pfSense_username = $credentials['pfSense_username'];
-$pfSense_password = $credentials['pfSense_password'];
 $plex_username = $credentials['plex_username'];
 $plex_password = $credentials['plex_password'];
 $trakt_username = $credentials['trakt_username'];
@@ -46,18 +41,17 @@ $sabSpeedLimitMin = $sabnzbd['sabSpeedLimitMin'];
 
 // Misc
 $cpu_cores = $misc['cpu_cores'];
-$weather_always_display = $misc['weather_always_display'];
-$weather_lat = $misc['weather_lat'];
-$weather_long = $misc['weather_long'];
-$weather_name = $misc['weather_name'];
-$weather_units = $misc['weather_units'];
-$ping_ip = $misc['ping_ip'];
-$timezone = $misc['timezone'];
-$apcupsd_path = $misc['apcupsd_path_to_bin'];
+
+// Weather
+$weather_lat = $weather['weather_lat'];
+$weather_long = $weather['weather_long'];
+$weather_name = $weather['weather_name'];
+$weather_units = $weather['weather_units'];
+$weather_timezone = $weather['weather_timezone'];
 
 // Timezone
-if ($timezone != ""){
-date_default_timezone_set($timezone);
+if ($weather_timezone != ""){
+date_default_timezone_set($weather_timezone);
 }
 
 // Disks
@@ -362,58 +356,8 @@ function get_client_ip()
     return $ipaddress;
 }
 
-function sabSpeedAdjuster()
-{
-    global $sab_ip;
-    global $sab_port;
-    global $sabnzbd_api;
-    global $sabSpeedLimitMax;
-    global $sabSpeedLimitMin;
-    // Set how high ping we want to hit before throttling
-    global $ping_throttle;
-
-    // Check the current ping
-    $avgPing = ping();
-    // Get SABnzbd XML
-    $sabnzbdXML = simplexml_load_file('http://' . $sab_ip . ':' . $sab_port . '/api?mode=queue&start=START&limit=LIMIT&output=xml&apikey=' . $sabnzbd_api);
-    // Get current SAB speed limit
-    $sabSpeedLimitCurrent = $sabnzbdXML->speedlimit;
-
-    // Check to see if SAB is downloading
-    if (($sabnzbdXML->status) == 'Downloading'):
-        // If it is downloading and ping is over X value, slow it down
-        if ($avgPing > $ping_throttle):
-            if ($sabSpeedLimitCurrent > $sabSpeedLimitMin):
-                // Reduce speed by 256KBps
-                echo 'Ping is over ' . $ping_throttle;
-                echo '<br>';
-                echo 'Slowing down SAB';
-                $sabSpeedLimitSet = $sabSpeedLimitCurrent - 256;
-                shell_exec('curl "http://' . $sab_ip . ':' . $sab_port . '/api?mode=config&name=speedlimit&value=' . $sabSpeedLimitSet . '&apikey=' . $sabnzbd_api . '"');
-            else:
-                echo 'Ping is over ' . $ping_throttle . ' but SAB cannot slow down anymore';
-            endif;
-        elseif (($avgPing + 9) < $ping_throttle):
-            if ($sabSpeedLimitCurrent < $sabSpeedLimitMax):
-                // Increase speed by 256KBps
-                echo 'SAB is downloading and ping is ' . ($avgPing + 9) . '  so increasing download speed.';
-                $sabSpeedLimitSet = $sabSpeedLimitCurrent + 256;
-                shell_exec('curl "http://' . $sab_ip . ':' . $sab_port . '/api?mode=config&name=speedlimit&value=' . $sabSpeedLimitSet . '&apikey=' . $sabnzbd_api . '"');
-            else:
-                echo 'SAB is downloading. Ping is low enough but we are at global download speed limit.';
-            endif;
-        else:
-            echo 'SAB is downloading. Ping is ok but not low enough to speed up SAB.';
-        endif;
-    else:
-        // do nothing,
-        echo 'SAB is not downloading.';
-    endif;
-}
-
 function makeRecenlyViewed()
 {
-    global $local_pfsense_ip;
     global $plex_port;
     global $plexToken;
     global $trakt_username;
@@ -466,13 +410,16 @@ function makeRecentlyAdded()
     echo '<div class="item active">';
     $mediaKey = $plexNewestXML->Directory[0]['parentKey'];
     $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-    $movieTitle = $mediaXML->Directory['title'];
     $movieArt = $mediaXML->Directory['thumb'];
-    // $episodeKey = $plexNewestXML->Directory[0]['key'];
-    // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-    // $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-    // $lastEP = array_pop($episodeXML->Video);
-    // $summary = $lastEP->Video['summary'];
+    $movieTitle = $mediaXML->Directory['title'];
+    $Season = $plexNewestXML->Directory[0]['title'];
+
+    $episodeKey = $plexNewestXML->Directory[0]['key'];
+    $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+    $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+    $lastEP = $episodeXML->Video[count($episodeXML->Video)-1];
+    $summary = $lastEP['summary'];
+    $episodeNumber = $lastEP['index'];
 
     if ($movieArt != null) {
         echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
@@ -480,8 +427,9 @@ function makeRecentlyAdded()
         echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.jpg">';
     }
     // echo '<h3>' . $movieTitle . '</h3>';
-    // echo '<p>' . $summary . '</p>';
-    // var_dump($lastEP);
+    echo '<h3 class="exoextralight" style="margin-top:5px;">' . $movieTitle . '</h3>';
+    echo '<h4 class="exoextralight" style="margin-top:5px;">' . $Season . ' - E' . $episodeNumber . '</h4>';
+    echo '<p>' . $summary . '</p>';
     echo '</div>'; // Close item div
 
     $i = 1;
@@ -489,22 +437,27 @@ function makeRecentlyAdded()
         if ($i == 15) break;
         $mediaKey = $plexNewestXML->Directory[$i]['parentKey'];
         $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-        $movieTitle = $mediaXML->Directory['title'];
         $movieArt = $mediaXML->Directory['thumb'];
-        $movieYear = $mediaXML->Directory['year'];
-        // $episodeKey = $plexNewestXML->Directory[$i]['key'];
-        // $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-        // $summary = $episodeXML->Video['summary'];
+        $movieTitle = $mediaXML->Directory['title'];
+        $Season = $plexNewestXML->Directory[$i]['title'];
+
+        $episodeKey = $plexNewestXML->Directory[$i]['key'];
+        $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+        $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+        $lastEP = $episodeXML->Video[count($episodeXML->Video)-1];
+        $summary = $lastEP['summary'];
+        $episodeNumber = $lastEP['index'];
+
         echo '<div class="item">';
         if ($movieArt != null) {
             echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
         } else {
             echo '<img src="assets/img/placeholder.jpg">';
         }
-        //echo '<div class="carousel-caption">';
         // echo '<h3>' . $movieTitle . '</h3>';
-        // echo '<p>' . $summary . '</p>';
-        //echo '</div>';
+        echo '<h3 class="exoextralight" style="margin-top:5px;">' . $movieTitle . '</h3>';
+        echo '<h4 class="exoextralight" style="margin-top:5px;">' . $Season . ' - E' . $episodeNumber . '</h4>';
+        echo '<p>' . $summary . '</p>';
         echo '</div>'; // Close item div
         $i++;
     }

@@ -4,6 +4,5 @@
 	include '../../init.php';
 	include ROOT_DIR . '/assets/php/functions.php';
 
-
-		makeWeatherSidebar();
+	makeWeatherSidebar();
 ?>
