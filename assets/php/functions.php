@@ -401,74 +401,85 @@ function makeRecentlyAdded()
     $clientIP = get_client_ip();
     $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/recentlyAdded/?X-Plex-Token=' . $plexToken);
     $plexNewestXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-    //echo '<div class="col-md-10 col-sm-offset-1">';
-    echo '<div class="col-md-12">';
+    echo '<div class="col-md-10 col-sm-offset-1">';
     echo '<div id="carousel-example-generic" class=" carousel slide">';
     echo '<div class="thumbnail">';
     echo '<!-- Wrapper for slides -->';
     echo '<div class="carousel-inner">';
     echo '<div class="item active">';
-    $mediaKey = $plexNewestXML->Directory[0]['parentKey'];
-    $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-    $movieArt = $mediaXML->Directory['thumb'];
-    $movieTitle = $mediaXML->Directory['title'];
-    $Season = $plexNewestXML->Directory[0]['title'];
-
-    $episodeKey = $plexNewestXML->Directory[0]['key'];
-    $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-    $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-    $lastEP = $episodeXML->Video[count($episodeXML->Video)-1];
-    $summary = $lastEP['summary'];
-    $episodeNumber = $lastEP['index'];
-
-    if ($movieArt != null) {
-        echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
-    } else {
-        echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.jpg">';
-    }
-    // echo '<h3>' . $movieTitle . '</h3>';
-    echo '<h3 class="exoextralight" style="margin-top:5px;">' . $movieTitle . '</h3>';
-    echo '<h4 class="exoextralight" style="margin-top:5px;">' . $Season . ' - E' . $episodeNumber . '</h4>';
-    echo '<p>' . $summary . '</p>';
-    echo '</div>'; // Close item div
-
-    $i = 1;
-    for (; ;) {
-        if ($i == 15) break;
-        $mediaKey = $plexNewestXML->Directory[$i]['parentKey'];
-        $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '/?X-Plex-Token=' . $plexToken);
-        $movieArt = $mediaXML->Directory['thumb'];
-        $movieTitle = $mediaXML->Directory['title'];
-        $Season = $plexNewestXML->Directory[$i]['title'];
-
-        $episodeKey = $plexNewestXML->Directory[$i]['key'];
-        $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-        $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
-        $lastEP = $episodeXML->Video[count($episodeXML->Video)-1];
-        $summary = $lastEP['summary'];
-        $episodeNumber = $lastEP['index'];
-
-        echo '<div class="item">';
-        if ($movieArt != null) {
-            echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
-        } else {
-            echo '<img src="assets/img/placeholder.jpg">';
+    // Determine if this is a Movie or TV Show and display the correct result
+    $i = 0;
+    foreach($plexNewestXML as $key => $media) {
+        if ( $media['type'] == 'season' ) {
+            $episodeParentKey = $media['parentKey'];
+            $episodeKey = $media['key'];
+            $seasonNumber = $media['title'];
+            $mediaXML = simplexml_load_file($network . ':' . $plex_port . $episodeParentKey . '/?X-Plex-Token=' . $plexToken);
+            $coverArt = $mediaXML->Directory['thumb'];
+            $showTitle = $mediaXML->Directory['title'];
+            $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
+            $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+            $lastEP = $episodeXML->Video[count($episodeXML->Video)-1];
+            $episodeNumber = $lastEP['index'];
+            // Truncated Summary
+            if (countWords($lastEP['summary']) < 51) {
+                $showSummary = $lastEP['summary'];
+            } else {
+                $showSummary = limitWords($lastEP['summary'], 50); // Limit to 50 words
+                $showSummary .= "...";
+            }
+            // Only open this div if it's not the first item
+            if ($i != 0 ) {
+                echo '<div class="item">';
+            }
+            // Display coverArt if we have it, otherwise use a placeholder
+            if ($coverArt != null) {
+                echo '<img src="' . ($network . ':' . $plex_port . $coverArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $showTitle . '">';
+            } else {
+                echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.jpg">';
+            }
+            // Display the show title with season info and summary
+            echo '<h3 class="exoextralight" style="margin-top:5px;">' . $showTitle . '</h3>';
+            echo '<h4 class="exoextralight" style="margin-top:5px;">' . $seasonNumber . ' - Episode ' . $episodeNumber . '</h4>';
+            echo '<p>' . $showSummary . '</p>';
+            echo '</div>';
+        } elseif ($media['type'] == 'movie' ) {
+            // It's a Movie!
+            $movieKey = $media['key'];
+            $mediaXML = simplexml_load_file($network . ':' . $plex_port . $movieKey . '/?X-Plex-Token=' . $plexToken);
+            $coverArt = $mediaXML->Video['thumb'];
+            $movieTitle = $mediaXML->Video['title'];
+            $movieYear = $mediaXML->Video['year'];
+            // Truncated Summary
+            if (countWords($mediaXML->Video['summary']) < 51) {
+                $movieSummary = $mediaXML->Video['summary'];
+            } else {
+                $movieSummary = limitWords($mediaXML->Video['summary'], 50); // Limit to 50 words
+                $movieSummary .= "...";
+            }
+            // Only open this div if it's not the first item
+            if ($i != 0 ) {
+                echo '<div class="item">';
+            }
+            // Display coverArt if we have it, otherwise use a placeholder
+            if ($coverArt != null) {
+                echo '<img src="' . ($network . ':' . $plex_port . $coverArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+            } else {
+                echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.jpg">';
+            }
+            // // Display the movie title with year and summary
+            echo '<h3 class="exoextralight" style="margin-top:5px;">' . $movieTitle . ' (' . $movieYear . ')</h3>';
+            echo '<p>' . $movieSummary . '</p>';
+            echo '</div>';
         }
-        // echo '<h3>' . $movieTitle . '</h3>';
-        echo '<h3 class="exoextralight" style="margin-top:5px;">' . $movieTitle . '</h3>';
-        echo '<h4 class="exoextralight" style="margin-top:5px;">' . $Season . ' - E' . $episodeNumber . '</h4>';
-        echo '<p>' . $summary . '</p>';
-        echo '</div>'; // Close item div
         $i++;
     }
     echo '</div>'; // Close carousel-inner div
     echo '</div>'; // Close thumbnail div
     echo '<!-- Controls -->';
     echo '<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">';
-    //echo '<span class="glyphicon glyphicon-chevron-left"></span>';
     echo '</a>';
     echo '<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">';
-    //echo '<span class="glyphicon glyphicon-chevron-right"></span>';
     echo '</a>';
     echo '</div>'; // Close carousel slide div
     echo '</div>'; // Close column div
