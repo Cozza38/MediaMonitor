@@ -913,34 +913,34 @@ function makeWeatherSidebar()
 	//	echo '</div>';
 	//}
 	echo '<ul class="list-inline" style="margin-bottom:-20px">';
-	echo '<li><h1 data-icon="' . $weatherIcon . '" style="font-size:500%;margin:0px -10px 20px -5px"></h1></li>';
+	echo '<li><h1 data-icon="' . $weatherIcon . '" style="font-size:500%;margin:0 -10px 20px -5px"></h1></li>';
 	echo '<li><ul class="list-unstyled">';
-	echo '<li><h1 class="exoregular" style="margin:0px">' . $currentTemp . '°</h1></li>';
-	echo '<li><h4 class="exoregular" style="margin:0px;padding-right:10px;width:80px">' . $currentSummary . '</h4></li>';
+	echo '<li><h1 class="exoregular" style="margin:0">' . $currentTemp . '°</h1></li>';
+	echo '<li><h4 class="exoregular" style="margin:0;padding-right:10px;width:80px">' . $currentSummary . '</h4></li>';
 	echo '</ul></li>';
 	echo '</ul>';
 	if ( $currentWindSpeed > 0 )
 	{
 		$direction = getDir($currentWindBearing);
-		if ( $weather_units == si )
+		if ( $weather_units == 'si' )
 		{
-			echo '<h4 class="exoextralight" style="margin-top:0px">Wind: ' . $currentWindSpeed . ' m/s from the ' . $direction . '</h4>';
+			echo '<h4 class="exoextralight" style="margin-top:0">Wind: ' . $currentWindSpeed . ' m/s from the ' . $direction . '</h4>';
 		}
 		else
 		{
-			if ( $weather_units != us and $weather_units != uk )
+			if ( $weather_units != 'us' and $weather_units != 'uk' )
 			{
-				echo '<h4 class="exoextralight" style="margin-top:0px">Wind: ' . $currentWindSpeed . ' km/h from the ' . $direction . '</h4>';
+				echo '<h4 class="exoextralight" style="margin-top:0">Wind: ' . $currentWindSpeed . ' km/h from the ' . $direction . '</h4>';
 			}
 			else
 			{
-				echo '<h4 class="exoextralight" style="margin-top:0px">Wind: ' . $currentWindSpeed . ' mph from the ' . $direction . '</h4>';
+				echo '<h4 class="exoextralight" style="margin-top:0">Wind: ' . $currentWindSpeed . ' mph from the ' . $direction . '</h4>';
 			}
 		}
 	}
 	else
 	{
-		echo '<h4 class="exoextralight" style="margin-top:0px">Wind: Calm</h4>';
+		echo '<h4 class="exoextralight" style="margin-top:0">Wind: Calm</h4>';
 	}
 	echo '<h4 class="exoregular">Next Hour</h4>';
 	echo '<h5 class="exoextralight" style="margin-top:10px">' . $minutelySummary . '</h5>';
