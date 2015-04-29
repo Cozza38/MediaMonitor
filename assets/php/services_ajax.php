@@ -2,10 +2,12 @@
 <?php
 ini_set('display_errors', true);
 include '../../init.php';
-include ROOT_DIR . '/assets/php/functions.php';
+include( "functions.php" );
 include( "service.class.php" );
 include( "servicePlex.class.php" );
 include( "serviceSAB.class.php" );
+include( "serviceSonarr.class.php" );
+include( "serviceCouch.class.php" );
 ?>
 <html lang="en">
 <script>
@@ -25,15 +27,13 @@ else:
 endif;
 
 $services = array(
-	new servicePlex("Plex", $plex_port, ( 'http://' . $wan_domain . ':' . $plex_port . '/web' ), $plex_server_ip,
-		$plexToken),
-	new serviceSAB("SABnzbd", $sab_port, ( 'https://' . $domain_name . '/sabnzbd' ), $sab_ip),
-	//	new service("SickBeard", 8081, "http://d4rk.co:8081", "10.0.1.3"),
-	//	new serviceCouch("CouchPotato", $couch_port, ('https://' . $domain_name . '/movies') , $couch_ip),
-	//  new service("Starbound Server", 21025, "http://playstarbound.com"),
+	new servicePlex("Plex", $plex_port, ( 'http://' . $wan_ip . ':' . $plex_port . '/web' ), $plex_server_ip, $plexToken),
+	new serviceSAB("SABnzbd", $sab_port, ( 'https://' . $domain_name . '/sabnzbd' ), $sab_ip, $sabnzbd_api, $sab_ssl),
+	new serviceSonarr("Sonarr", $sonarr_port, ('https://' . $domain_name . '/tv'), $sonarr_ip, $sonarr_api, $sonarr_ssl),
+	new serviceCouch("CouchPotato", $couch_port, ('https://' . $domain_name . '/movies') , $couch_ip, $couchpotato_api, $couch_ssl),
 );
 ?>
-<table class="center">
+<table class="table">
 	<?php foreach ($services as $service)
 	{
 		?>

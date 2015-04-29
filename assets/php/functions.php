@@ -11,6 +11,8 @@ $network = $config['network'];
 $credentials = $config['credentials'];
 $api_keys = $config['api_keys'];
 $sabnzbd = $config['sabnzbd'];
+$couchpotato = $config['couchpotato'];
+$sonarr = $config['sonarr'];
 $misc = $config['misc'];
 $weather = $config['weather'];
 $disks = $config['disks'];
@@ -30,14 +32,23 @@ $trakt_username = $credentials['trakt_username'];
 // API Keys
 $forecast_api = $api_keys['forecast_api'];
 $sabnzbd_api = $api_keys['sabnzbd_api'];
+$couchpotato_api = $api_keys['couchpotato_api'];
 $trakt_api = $api_keys['trakt_api'];
 
 // SABnzbd+
+$sab_ssl = $sabnzbd['sab_ssl'];
 $sab_ip = $sabnzbd['sab_ip'];
 $sab_port = $sabnzbd['sab_port'];
-$ping_throttle = $sabnzbd['ping_throttle'];
-$sabSpeedLimitMax = $sabnzbd['sabSpeedLimitMax'];
-$sabSpeedLimitMin = $sabnzbd['sabSpeedLimitMin'];
+
+// CouhPotato
+$couch_ssl = $couchpotato['couch_ssl'];
+$couch_ip = $couchpotato['couch_ip'];
+$couch_port = $couchpotato['couch_port'];
+
+// Sonarr
+$sonarr_ssl = $sonarr['sonarr_ssl'];
+$sonarr_ip = $sonarr['sonarr_ip'];
+$sonarr_port = $sonarr['sonarr_port'];
 
 // Misc
 $cpu_cores = $misc['cpu_cores'];
@@ -356,6 +367,18 @@ function get_client_ip()
     return $ipaddress;
 }
 
+function protocolCheck($service)
+{
+    // Get SSL values for requested service
+    if ("{$service}" == 'true') {
+        return 'https://';
+    }
+    else
+    {
+        return 'http://';
+    }
+}
+
 function getTraktHistory($traktUsername, $type)
 {
     global $trakt_api;
@@ -533,7 +556,7 @@ function makeNowPlaying()
     if (!$plexSessionXML):
         makeRecentlyViewed();
     elseif (count($plexSessionXML->Video) == 0):
-        // makeRecentlyViewed(); 
+        // makeRecentlyViewed();
         makeRecentlyAdded();
     else:
         $i = 0; // Initiate and assign a value to i & t
