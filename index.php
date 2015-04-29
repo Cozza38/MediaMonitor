@@ -22,8 +22,8 @@ $detect = new Mobile_Detect;
 	<!-- Le styles -->
 	<link href="assets/fonts/stylesheet.css" rel="stylesheet">
 	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
 	<style type="text/css">
 		::-webkit-scrollbar {
 			display: none;
@@ -63,29 +63,7 @@ $detect = new Mobile_Detect;
 		.exoregular {
 			font-family: "exoregular";
 		}
-
-		/* Changes carousel slide transition to fade transition
-		.carousel {
-			overflow: hidden;
-		}
-		.carousel .item {
-			-webkit-transition: opacity 1s;
-			-moz-transition: opacity 1s;
-			-ms-transition: opacity 1s;
-			-o-transition: opacity 1s;
-			transition: opacity 1s;
-		}
-		.carousel .active.left, .carousel .active.right {
-			left:0;
-			opacity:0;
-			z-index:2;
-		}
-		.carousel .next, .carousel .prev {
-			left:0;
-			opacity:1;
-			z-index:1;
-		}
-		 End of carousel slide transition hack */
+		
 		/* Disables shadowing on right and left sides of carousel images for a crisp look */
 		.carousel-control.left {
 			background-image: none;
@@ -260,7 +238,7 @@ $detect = new Mobile_Detect;
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="//code.jquery.com/jquery.js"></script>
 <!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="assets/js/bootstrap.min.js"></script>
 <script>
 	// Enable bootstrap tooltips
 	$(function () {
