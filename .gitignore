@@ -3,3 +3,5 @@ assets/caches/plexcheckfile1.txt
 assets/caches/plexcheckfile2.txt
 assets/php/analyticstracking.php
 private/
+vendor/
+composer.lock
