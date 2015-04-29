@@ -22,6 +22,6 @@ class link {
 
 	function makeLink()
 	{
-		echo "<li><a href=\"$this->url\" $this->prefix><i class=\"icon-fixed-width icon-$this->ico\"/></i> $this->name</a></li>";
+		echo '<li><a href="' . $this->url . '" ' . $this->prefix . '><i class="icon-fixed-width icon-$this->ico"/></i>' . $this->name . '</a></li>';
 	}
 }
