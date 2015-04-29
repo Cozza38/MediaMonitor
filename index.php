@@ -360,7 +360,6 @@ $detect = new Mobile_Detect;
 			}, 120000); // 2 minutes
 
 			var refreshtopleft = setInterval(function () {
-				$left_column_mid
 				_refresh.load('assets/php/left_column_mid_ajax.php');
 			}, 300000); // 5 minutes
 

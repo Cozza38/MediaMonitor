@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <?php
-	Ini_Set( 'display_errors', true );
-	include '../../init.php';
-	include ROOT_DIR . '/assets/php/functions.php';
+ini_set('display_errors', true);
+include '../../init.php';
+include ROOT_DIR . '/assets/php/functions.php';
 ?>
 <html lang="en">
-	<script>
+<script>
 	// Enable bootstrap tooltips
-	$(function ()
-	        { $("[rel=tooltip]").tooltip();
-	        });
-	</script>
-<?php 
+	$(function () {
+		$("[rel=tooltip]").tooltip();
+	});
+</script>
+<?php
 
 global $wan1_ip;
 global $wan2_ip;
 global $ping_ip;
 
 echo '<div class="exolight">';
-echo 'WAN1 Ping: '.getPing($ping_ip).' ms';
+echo 'WAN1 Ping: ' . getPing($ping_ip) . ' ms';
 echo '<br>';
 echo '';
 echo '<br>';
