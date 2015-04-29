@@ -6,7 +6,6 @@ Ini_Set('display_errors', false);
 
 include(ROOT_DIR . '/init.php');
 
-// include 'lib/phpseclib0.3.5/Net/SSH2.php';
 $config = parse_ini_file($config_path, true);
 $network = $config['network'];
 $credentials = $config['credentials'];
@@ -18,7 +17,7 @@ $disks = $config['disks'];
 
 // Import variables from config file
 // Network
-$wan_domain = $network['wan_domain'];
+$wan_ip = $network['wan_ip'];
 $domain_name = $network['domain_name'];
 $plex_server_ip = $network['plex_server_ip'];
 $plex_port = $network['plex_port'];
@@ -31,6 +30,7 @@ $trakt_username = $credentials['trakt_username'];
 // API Keys
 $forecast_api = $api_keys['forecast_api'];
 $sabnzbd_api = $api_keys['sabnzbd_api'];
+$trakt_api = $api_keys['trakt_api'];
 
 // SABnzbd+
 $sab_ip = $sabnzbd['sab_ip'];
@@ -332,14 +332,14 @@ function printTotalDiskBar($dup, $name = "", $dsu, $dts)
 function getNetwork()
 {
     // It should be noted that this function is designed specifically for getting the local / wan name for Plex.
-    global $wan_domain;
+    global $wan_ip;
     global $plex_server_ip;
 
     $clientIP = get_client_ip();
     if ($clientIP == $plex_server_ip):
         $network = 'http://' . $plex_server_ip;
     else:
-        $network = 'http://' . $wan_domain;
+        $network = 'http://' . $wan_ip;
     endif;
     return $network;
 }
@@ -356,8 +356,10 @@ function get_client_ip()
     return $ipaddress;
 }
 
-function getTraktWatched($traktUsername, $type)
+function getTraktHistory($traktUsername, $type)
 {
+    global $trakt_api;
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL,
         "https://api-v2launch.trakt.tv/users/{$traktUsername}/history/{$type}?extended=images");
@@ -368,7 +370,7 @@ function getTraktWatched($traktUsername, $type)
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         "Content-Type: application/json",
         "trakt-api-version: 2",
-        "trakt-api-key: c6515b52742de1f86fcbf49bfe9c76e4fecfc10bb8ed3ee6dc730221f4bdb382"
+        "trakt-api-key: " . $trakt_api . ""
     ));
 
     $response = curl_exec($ch);
@@ -391,34 +393,41 @@ function getTraktWatched($traktUsername, $type)
 function makeRecentlyViewed()
 {
     global $trakt_username;
-    $network = getNetwork();
-    $clientIP = get_client_ip();
 
-    getTraktWatched($trakt_username, 'movies')
-    getTraktWatched($trakt_username, 'episodes')
-
-
+    // $traktMovieHistory = getTraktHistory($trakt_username, 'movies');
+    $traktEpisodeHistory = getTraktHistory($trakt_username, 'episodes');
     echo '<div class="col-md-10 col-sm-offset-1">';
-    echo '<a href="http://trakt.tv/user/' . $trakt_username . '" class="thumbnail">';
-    if (file_exists($traktThumb) && (filemtime($traktThumb) > (time() - 60 * 15))) {
-        // Trakt image is less than 15 minutes old.
-        // Don't refresh the image, just use the file as-is.
-        echo '<img src="' . $network . '/assets/caches/thumbnails/all-tvthumb.jpg" alt="trakt.tv" class="img-responsive"></a>';
-    } else {
-        // Either file doesn't exist or our cache is out of date,
-        // so check if the server has different data,
-        // if it does, load the data from our remote server and also save it over our cache for next time.
-        $thumbFromTrakt_md5 = md5_file($trakt_url);
-        $traktThumb_md5 = md5_file($traktThumb);
-        if ($thumbFromTrakt_md5 === $traktThumb_md5) {
-            echo '<img src="' . $network . '/assets/caches/thumbnails/all-tvthumb.jpg" alt="trakt.tv" class="img-responsive"></a>';
-        } else {
-            $thumbFromTrakt = file_get_contents($trakt_url);
-            file_put_contents($traktThumb, $thumbFromTrakt, LOCK_EX);
-            echo '<img src="' . $network . '/assets/caches/thumbnails/all-tvthumb.jpg" alt="trakt.tv" class="img-responsive"></a>';
+    echo '<div id="carousel-example-generic" class=" carousel slide">';
+    echo '<div class="thumbnail">';
+    echo '<!-- Wrapper for slides -->';
+    echo '<div class="carousel-inner">';
+    echo '<div class="item active">';
+    $i = 0;
+    for (; ;) {
+        if ($i == 10) break;
+        $coverArt = $traktEpisodeHistory[$i]->show->images->poster->full;
+        $showTitle = $traktEpisodeHistory[$i]->show->title;
+        $seasonNumber = $traktEpisodeHistory[$i]->episode->season;
+        $episodeNumber = $traktEpisodeHistory[$i]->episode->number;
+        if ($i != 0 ) {
+        echo '<div class="item">';
         }
+        echo '<img src="' . $coverArt . '">';
+        echo '<h3 class="exoextralight" style="margin-top:5px;">' . $showTitle . '</h3>';
+        echo '<h4 class="exoextralight" style="margin-top:5px;">Season ' . $seasonNumber . ' - Episode ' . $episodeNumber . '</h4>';
+        echo '<a href="http://trakt.tv/user/' . $trakt_username . '">trakt.tv</a>';
+        echo '</div>';
+        $i++;
     }
-    echo '</div>';
+    echo '</div>'; // Close carousel-inner div
+    echo '</div>'; // Close thumbnail div
+    echo '<!-- Controls -->';
+    echo '<a class="left carousel-control" href="#carousel-example-generic" data-slide="prev">';
+    echo '</a>';
+    echo '<a class="right carousel-control" href="#carousel-example-generic" data-slide="next">';
+    echo '</a>';
+    echo '</div>'; // Close carousel slide div
+    echo '</div>'; // Close column div
 }
 
 function makeRecentlyAdded()
@@ -439,6 +448,7 @@ function makeRecentlyAdded()
     $i = 0;
     foreach($plexNewestXML as $key => $media) {
         if ( $media['type'] == 'season' ) {
+            // It's a TV Show!
             $episodeParentKey = $media['parentKey'];
             $episodeKey = $media['key'];
             $seasonNumber = $media['title'];
@@ -464,7 +474,7 @@ function makeRecentlyAdded()
             if ($coverArt != null) {
                 echo '<img src="' . ($network . ':' . $plex_port . $coverArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $showTitle . '">';
             } else {
-                echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.jpg">';
+                echo '<img src="assets/img/placeholder.jpg">';
             }
             // Display the show title with season info and summary
             echo '<h3 class="exoextralight" style="margin-top:5px;">' . $showTitle . '</h3>';
@@ -493,7 +503,7 @@ function makeRecentlyAdded()
             if ($coverArt != null) {
                 echo '<img src="' . ($network . ':' . $plex_port . $coverArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
             } else {
-                echo '<img class="placeholderRecentlyAdded" src="assets/img/placeholder.jpg">';
+                echo '<img src="assets/img/placeholder.jpg">';
             }
             // // Display the movie title with year and summary
             echo '<h3 class="exoextralight" style="margin-top:5px;">' . $movieTitle . ' (' . $movieYear . ')</h3>';
@@ -523,7 +533,8 @@ function makeNowPlaying()
     if (!$plexSessionXML):
         makeRecentlyViewed();
     elseif (count($plexSessionXML->Video) == 0):
-        makeRecentlyViewed(); // makeRecentlyAdded();
+        // makeRecentlyViewed(); 
+        makeRecentlyAdded();
     else:
         $i = 0; // Initiate and assign a value to i & t
         $t = 0; // T is the total amount of sessions
