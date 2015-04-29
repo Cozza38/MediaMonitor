@@ -659,6 +659,8 @@ class Mobile_Detect {
 	 * Set the User-Agent to be used.
 	 *
 	 * @param string $userAgent The user agent string to set.
+	 *
+	 * @return null|string
 	 */
 	public function setUserAgent($userAgent = null)
 	{
