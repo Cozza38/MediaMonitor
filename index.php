@@ -22,7 +22,7 @@ $detect = new Mobile_Detect;
 	<!-- Le styles -->
 	<link href="assets/fonts/stylesheet.css" rel="stylesheet">
 	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
 	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
 	<style type="text/css">
 		::-webkit-scrollbar {
@@ -63,7 +63,7 @@ $detect = new Mobile_Detect;
 		.exoregular {
 			font-family: "exoregular";
 		}
-		
+
 		/* Disables shadowing on right and left sides of carousel images for a crisp look */
 		.carousel-control.left {
 			background-image: none;
