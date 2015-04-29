@@ -111,7 +111,6 @@ function win_load_avg()
 	return $load;
 }
 
-
 function isWin()
 {
 	global $serverOs;

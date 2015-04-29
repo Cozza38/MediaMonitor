@@ -12,10 +12,10 @@ function getPlexToken()
 		$host    = "https://my.plexapp.com/users/sign_in.xml";
 		$process = curl_init($host);
 		curl_setopt($process, CURLOPT_HTTPHEADER, array(
-				'Content-Type: application/xml; charset=utf-8',
-				'Content-Length: 0',
-				'X-Plex-Client-Identifier: plexWatchWeb'
-			));
+			'Content-Type: application/xml; charset=utf-8',
+			'Content-Length: 0',
+			'X-Plex-Client-Identifier: plexWatchWeb'
+		));
 		curl_setopt($process, CURLOPT_HEADER, 0);
 		curl_setopt($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 		curl_setopt($process, CURLOPT_USERPWD, $plex_username . ":" . $plex_password);
