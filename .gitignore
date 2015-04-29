@@ -5,3 +5,4 @@ assets/php/analyticstracking.php
 private/
 vendor/
 composer.lock
+.idea/

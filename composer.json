@@ -1,0 +1,10 @@
+{
+  "name": "cozza38/mediamonitor",
+  "type": "project",
+  "description": "",
+  "license": "proprietary",
+  "minimum-stability": "dev",
+  "require": {
+    "twig/twig": "~1.0"
+  }
+}
