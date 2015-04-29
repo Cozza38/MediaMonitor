@@ -356,21 +356,49 @@ function get_client_ip()
     return $ipaddress;
 }
 
-function makeRecenlyViewed()
+function getTraktWatched($traktUsername, $type)
 {
-    global $plex_port;
-    global $plexToken;
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL,
+        "https://api-v2launch.trakt.tv/users/{$traktUsername}/history/{$type}?extended=images");
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        "Content-Type: application/json",
+        "trakt-api-version: 2",
+        "trakt-api-key: c6515b52742de1f86fcbf49bfe9c76e4fecfc10bb8ed3ee6dc730221f4bdb382"
+    ));
+
+    $response = curl_exec($ch);
+
+    if ( $response )
+    {
+        curl_close($ch);
+
+        return json_decode($response);
+    }
+    else
+    {
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        return $error;
+    }
+}
+
+function makeRecentlyViewed()
+{
     global $trakt_username;
-    global $weather_lat;
-    global $weather_long;
-    global $weather_name;
     $network = getNetwork();
     $clientIP = get_client_ip();
-    $plexSessionXML = simplexml_load_file($network . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
-    $trakt_url = 'http://trakt.tv/user/' . $trakt_username . '/widgets/watched/all-tvthumb.jpg';
-    $traktThumb = '/assets/caches/thumbnails/all-tvthumb.jpg';
 
-    echo '<div class="col-md-12">';
+    getTraktWatched($trakt_username, 'movies')
+    getTraktWatched($trakt_username, 'episodes')
+
+
+    echo '<div class="col-md-10 col-sm-offset-1">';
     echo '<a href="http://trakt.tv/user/' . $trakt_username . '" class="thumbnail">';
     if (file_exists($traktThumb) && (filemtime($traktThumb) > (time() - 60 * 15))) {
         // Trakt image is less than 15 minutes old.
@@ -493,9 +521,9 @@ function makeNowPlaying()
     $plexSessionXML = simplexml_load_file($network . ':' . $plex_port . '/status/sessions?X-Plex-Token=' . $plexToken);
 
     if (!$plexSessionXML):
-        makeRecenlyViewed();
+        makeRecentlyViewed();
     elseif (count($plexSessionXML->Video) == 0):
-        makeRecentlyAdded();
+        makeRecentlyViewed(); // makeRecentlyAdded();
     else:
         $i = 0; // Initiate and assign a value to i & t
         $t = 0; // T is the total amount of sessions
