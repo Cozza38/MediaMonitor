@@ -1,11 +1,8 @@
 <?php
-
-$config_path = ROOT_DIR . '../private/config.ini'; //path to config file, recommend you place it outside of web root
-
+include(ROOT_DIR . '/init.php');
 Ini_Set('display_errors', false);
 
-include(ROOT_DIR . '/init.php');
-
+$config_path = ROOT_DIR . '../private/config.ini'; //path to config file, recommend you place it outside of web root
 $config = parse_ini_file($config_path, true);
 $network = $config['network'];
 $credentials = $config['credentials'];
@@ -144,8 +141,6 @@ function isLocal($ipAddress)
 
 function showDiv($div)
 {
-    // global $apcupsd_server_ip;
-    // global $local_pfsense_ip;
     switch ($div) {
         case 'services':
             break;
@@ -533,7 +528,7 @@ function makeNowPlaying()
     if (!$plexSessionXML):
         makeRecentlyViewed();
     elseif (count($plexSessionXML->Video) == 0):
-        // makeRecentlyViewed(); 
+        // makeRecentlyViewed();
         makeRecentlyAdded();
     else:
         $i = 0; // Initiate and assign a value to i & t
