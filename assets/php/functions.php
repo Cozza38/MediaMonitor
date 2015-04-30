@@ -361,7 +361,6 @@ function getTraktHistory($traktUsername, $type)
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HEADER, false);
-
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         "Content-Type: application/json",
         "trakt-api-version: 2",
@@ -404,13 +403,15 @@ function makeRecentlyViewed()
         $showTitle = $traktEpisodeHistory[$i]->show->title;
         $seasonNumber = $traktEpisodeHistory[$i]->episode->season;
         $episodeNumber = $traktEpisodeHistory[$i]->episode->number;
+        // Only open this div if it's not the first item
         if ($i != 0 ) {
         echo '<div class="item">';
         }
+        // Display recently viewed items from trakt.tv
         echo '<img src="' . $coverArt . '">';
         echo '<h3 class="exoextralight" style="margin-top:5px;">' . $showTitle . '</h3>';
         echo '<h4 class="exoextralight" style="margin-top:5px;">Season ' . $seasonNumber . ' - Episode ' . $episodeNumber . '</h4>';
-        echo '<a href="http://trakt.tv/user/' . $trakt_username . '">trakt.tv</a>';
+        echo '<a href="https://trakt.tv/user/' . $trakt_username . '">trakt.tv</a>';
         echo '</div>';
         $i++;
     }
@@ -534,7 +535,6 @@ function makeNowPlaying()
         $i = 0; // Initiate and assign a value to i & t
         $t = 0; // T is the total amount of sessions
         echo '<div class="col-md-10 col-sm-offset-1">';
-        //echo '<div class="col-md-12">';
         foreach ($plexSessionXML->Video as $sessionInfo):
             $t++;
         endforeach;
@@ -670,16 +670,6 @@ function getTranscodeSessions()
     endif;
 }
 
-//function getPlexToken()
-//{
-//    global $plex_username;
-//    global $plex_password;
-//    $myPlex = shell_exec('curl -H "Content-Length: 0" -H "X-Plex-Client-Identifier: my-app" -u "' . $plex_username . '"":""' . $plex_password . '" -X POST https://my.plexapp.com/users/sign_in.xml 2> /dev/null');
-//    $myPlex_xml = simplexml_load_string($myPlex);
-//    $token = $myPlex_xml['authenticationToken'];
-//    return $token;
-//}
-
 function countWords($string)
 {
     $words = explode(" ", $string);
@@ -787,7 +777,6 @@ function makeWeatherSidebar()
     echo '<h4 class="exoregular">The Sun</h4>';
     echo '<h5 class="exoextralight" style="margin-top:10px">' . $rises . ' at ' . date('g:i A', $sunriseTime) . '</h5>';
     echo '<h5 class="exoextralight" style="margin-top:10px">' . $sets . ' at ' . date('g:i A', $sunsetTime) . '</h5>';
-    // echo '<p class="text-right no-link-color" style="margin-bottom:-10px"><small><a href="http://forecast.io/#/f/' . $weather_lat . ',' . $weather_long . '">Forecast.io</a></small></p> ';
 }
 
 ?>
