@@ -1,9 +1,10 @@
 <?php
 include(ROOT_DIR . '/init.php');
-Ini_Set('display_errors', false);
+ini_set('display_errors', false);
 
 $config_path = ROOT_DIR . '../private/config.ini'; //path to config file, recommend you place it outside of web root
 $config = parse_ini_file($config_path, true);
+
 $network = $config['network'];
 $credentials = $config['credentials'];
 $api_keys = $config['api_keys'];
@@ -32,9 +33,6 @@ $trakt_api = $api_keys['trakt_api'];
 // SABnzbd+
 $sab_ip = $sabnzbd['sab_ip'];
 $sab_port = $sabnzbd['sab_port'];
-$ping_throttle = $sabnzbd['ping_throttle'];
-$sabSpeedLimitMax = $sabnzbd['sabSpeedLimitMax'];
-$sabSpeedLimitMin = $sabnzbd['sabSpeedLimitMin'];
 
 // Misc
 $cpu_cores = $misc['cpu_cores'];
@@ -48,7 +46,7 @@ $weather_timezone = $weather['weather_timezone'];
 
 // Timezone
 if ($weather_timezone != ""){
-date_default_timezone_set($weather_timezone);
+    date_default_timezone_set($weather_timezone);
 }
 
 // Disks
@@ -405,7 +403,7 @@ function makeRecentlyViewed()
         $episodeNumber = $traktEpisodeHistory[$i]->episode->number;
         // Only open this div if it's not the first item
         if ($i != 0 ) {
-        echo '<div class="item">';
+          echo '<div class="item">';
         }
         // Display recently viewed items from trakt.tv
         echo '<img src="' . $coverArt . '">';
