@@ -14,12 +14,14 @@ class serviceSAB {
 	public $status;
 
 
-	function __construct($name, $port, $url = "", $host = "localhost")
+	function __construct($name, $port, $url = "", $host, $api, $ssl)
 	{
 		$this->name = $name;
 		$this->port = $port;
 		$this->url  = $url;
 		$this->host = $host;
+		$this->api = $api;
+		$this->ssl = $ssl;
 
 		$this->status = $this->check_port();
 	}
@@ -43,11 +45,8 @@ class serviceSAB {
 
 	function makeButton()
 	{
-		global $sab_ip;
-		global $sab_port;
-		global $sabnzbd_api;
-
-		$sabnzbdXML = simplexml_load_file('https://' . $sab_ip . ':' . $sab_port . '/api?mode=qstatus&output=xml&apikey=' . $sabnzbd_api);
+		$protocol = protocolCheck($this->ssl);
+		$sabnzbdXML = simplexml_load_file( $protocol . $this->host . ':' . $this->port . '/api?mode=qstatus&output=xml&apikey=' . $this->api);
 
 		if ( ( $sabnzbdXML->state ) == 'Downloading' ):
 			$speed = $sabnzbdXML->speed;
