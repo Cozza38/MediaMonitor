@@ -1,16 +1,18 @@
 <?php
+
+$config_path = ROOT_DIR . '/private/config.ini'; //path to config file, recommend you place it outside of web root
+
+Ini_Set('display_errors', false);
+
 include(ROOT_DIR . '/init.php');
-ini_set('display_errors', false);
 
-$config_path = ROOT_DIR . '../private/config.ini'; //path to config file, recommend you place it outside of web root
 $config = parse_ini_file($config_path, true);
-
 $network = $config['network'];
-$credentials = $config['credentials'];
-$api_keys = $config['api_keys'];
+$plex = $config['plex'];
 $sabnzbd = $config['sabnzbd'];
 $couchpotato = $config['couchpotato'];
 $sonarr = $config['sonarr'];
+$trakt = $config['trakt'];
 $misc = $config['misc'];
 $weather = $config['weather'];
 $disks = $config['disks'];
@@ -19,34 +21,34 @@ $disks = $config['disks'];
 // Network
 $wan_ip = $network['wan_ip'];
 $domain_name = $network['domain_name'];
-$plex_server_ip = $network['plex_server_ip'];
-$plex_port = $network['plex_port'];
 
-// Credentials
-$plex_username = $credentials['plex_username'];
-$plex_password = $credentials['plex_password'];
-$trakt_username = $credentials['trakt_username'];
-
-// API Keys
-$forecast_api = $api_keys['forecast_api'];
-$sabnzbd_api = $api_keys['sabnzbd_api'];
-$couchpotato_api = $api_keys['couchpotato_api'];
-$trakt_api = $api_keys['trakt_api'];
+// Plex
+$plex_username = $plex['plex_username'];
+$plex_password = $plex['plex_password'];
+$plex_server_ip = $plex['plex_server_ip'];
+$plex_port = $plex['plex_port'];
 
 // SABnzbd+
 $sab_ssl = $sabnzbd['sab_ssl'];
 $sab_ip = $sabnzbd['sab_ip'];
 $sab_port = $sabnzbd['sab_port'];
+$sabnzbd_api = $sabnzbd['sab_api'];
 
-// CouhPotato
+// CouchPotato
 $couch_ssl = $couchpotato['couch_ssl'];
 $couch_ip = $couchpotato['couch_ip'];
 $couch_port = $couchpotato['couch_port'];
+$couchpotato_api = $couchpotato['couch_api'];
 
 // Sonarr
 $sonarr_ssl = $sonarr['sonarr_ssl'];
 $sonarr_ip = $sonarr['sonarr_ip'];
 $sonarr_port = $sonarr['sonarr_port'];
+$sonarr_api = $sonarr['sonarr_api'];
+
+// Trakt
+$trakt_username = $trakt['trakt_username'];
+$trakt_api = $trakt['trakt_api'];
 
 // Misc
 $cpu_cores = $misc['cpu_cores'];
@@ -57,6 +59,7 @@ $weather_long = $weather['weather_long'];
 $weather_name = $weather['weather_name'];
 $weather_units = $weather['weather_units'];
 $weather_timezone = $weather['weather_timezone'];
+$weather_api = $weather['weather_api'];
 
 // Timezone
 if ($weather_timezone != ""){
@@ -70,7 +73,6 @@ $disk = $disks;
 $plexTokenCache = ROOT_DIR . '/assets/caches/plex_token.txt';
 // Check to see if the plex token exists and is younger than one week
 // if not grab it and write it to our caches folder
-
 include ROOT_DIR . '/assets/php/plex.php';
 if (file_exists($plexTokenCache) && (filemtime($plexTokenCache) > (time() - 60 * 60 * 24 * 7))) {
     $plexToken = file_get_contents(ROOT_DIR . '/assets/caches/plex_token.txt');
@@ -336,33 +338,6 @@ function printTotalDiskBar($dup, $name = "", $dsu, $dts)
     echo '</div>';
 }
 
-function getNetwork()
-{
-    // It should be noted that this function is designed specifically for getting the local / wan name for Plex.
-    global $wan_ip;
-    global $plex_server_ip;
-
-    $clientIP = get_client_ip();
-    if ($clientIP == $plex_server_ip):
-        $network = 'http://' . $plex_server_ip;
-    else:
-        $network = 'http://' . $wan_ip;
-    endif;
-    return $network;
-}
-
-function get_client_ip()
-{
-    if (isset($_SERVER["REMOTE_ADDR"])) {
-        $ipaddress = $_SERVER["REMOTE_ADDR"];
-    } else if (isset($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-        $ipaddress = $_SERVER["HTTP_X_FORWARDED_FOR"];
-    } else if (isset($_SERVER["HTTP_CLIENT_IP"])) {
-        $ipaddress = $_SERVER["HTTP_CLIENT_IP"];
-    }
-    return $ipaddress;
-}
-
 function protocolCheck($service)
 {
     // Get SSL values for requested service
@@ -385,6 +360,7 @@ function getTraktHistory($traktUsername, $type)
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HEADER, false);
+
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         "Content-Type: application/json",
         "trakt-api-version: 2",
@@ -408,6 +384,81 @@ function getTraktHistory($traktUsername, $type)
     }
 }
 
+function XMLCache($Path, $Name)
+{
+    global $plex_server_ip;
+    global $plex_port;
+    global $plexToken;
+
+    $XML = file_get_contents('http://' . $plex_server_ip . ':' . $plex_port . "{$Path}/?X-Plex-Token=". $plexToken);
+    $CachePath = ROOT_DIR . "/assets/caches/{$Name}.xml";
+
+    if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 60))) {
+        $XMLCache = simplexml_load_file($CachePath);
+        return $XMLCache;
+    } else {
+        if (!file_exists($CachePath)) {
+            touch($CachePath);
+        }
+        $XML_md5 = md5_file($XML);
+        $CachePath_md5 = md5_file($CachePath);
+        if ($XML_md5 == $CachePath_md5) {
+            $XMLCache = simplexml_load_file($CachePath);
+            return $XMLCache;
+        } else {
+            file_put_contents($CachePath, $XML, LOCK_EX);
+            $XMLCache = simplexml_load_file($CachePath);
+            return $XMLCache;
+        }
+    }
+}
+
+function SessionCache()
+{
+    global $plex_server_ip;
+    global $plex_port;
+    global $plexToken;
+
+    $SessionXML = file_get_contents('http://' . $plex_server_ip . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
+    $CachePath = ROOT_DIR . '/assets/caches/session.xml';
+
+    if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 30))) {
+        $SessionCache = simplexml_load_file($CachePath);
+        return $SessionCache;
+    } else {
+        if (!file_exists($CachePath)) {
+            touch($CachePath);
+        }
+        file_put_contents($CachePath, $SessionXML, LOCK_EX);
+        $SessionCache = simplexml_load_file($CachePath);
+        return $SessionCache;
+    }
+}
+
+function BuildImageCache($CoverArt, $Title)
+{
+    global $plex_server_ip;
+    global $plex_port;
+    $CachePath = ROOT_DIR . '/assets/caches/images/' . $Title . '.jpg';
+
+    $ch = curl_init('http://' . $plex_server_ip . ':' . $plex_port . $CoverArt);
+    $SaveCache = fopen($CachePath, "w");
+    curl_setopt($ch, CURLOPT_FILE, $SaveCache);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_exec($ch);
+    curl_close($ch);
+    fclose($SaveCache);
+}
+
+function Sanitize($Title)
+{
+	$Title = strtolower($Title);
+	$Title = str_replace (" ", "_", $Title);
+	$Title = preg_replace ("/[^a-zA-Z0-9-_\.]/", "", $Title);
+	$Title = preg_replace ("([\.]{2,})", "", $Title);
+	return $Title;
+}
+
 function makeRecentlyViewed()
 {
     global $trakt_username;
@@ -427,15 +478,13 @@ function makeRecentlyViewed()
         $showTitle = $traktEpisodeHistory[$i]->show->title;
         $seasonNumber = $traktEpisodeHistory[$i]->episode->season;
         $episodeNumber = $traktEpisodeHistory[$i]->episode->number;
-        // Only open this div if it's not the first item
         if ($i != 0 ) {
-          echo '<div class="item">';
+            echo '<div class="item">';
         }
-        // Display recently viewed items from trakt.tv
         echo '<img src="' . $coverArt . '">';
         echo '<h3 class="exoextralight" style="margin-top:5px;">' . $showTitle . '</h3>';
         echo '<h4 class="exoextralight" style="margin-top:5px;">Season ' . $seasonNumber . ' - Episode ' . $episodeNumber . '</h4>';
-        echo '<a href="https://trakt.tv/user/' . $trakt_username . '">trakt.tv</a>';
+        echo '<a href="http://trakt.tv/user/' . $trakt_username . '">trakt.tv</a>';
         echo '</div>';
         $i++;
     }
@@ -453,11 +502,7 @@ function makeRecentlyViewed()
 function makeRecentlyAdded()
 {
     global $plex_port;
-    global $plexToken;
-    $network = getNetwork();
-    $clientIP = get_client_ip();
-    $plexNewestXML = simplexml_load_file($network . ':' . $plex_port . '/library/recentlyAdded/?X-Plex-Token=' . $plexToken);
-    $plexNewestXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+    $plexNewestXML = XMLCache('/library/recentlyAdded', 'recentlyadded/recentlyAdded');
     echo '<div class="col-md-10 col-sm-offset-1">';
     echo '<div id="carousel-example-generic" class=" carousel slide">';
     echo '<div class="thumbnail">';
@@ -472,11 +517,10 @@ function makeRecentlyAdded()
             $episodeParentKey = $media['parentKey'];
             $episodeKey = $media['key'];
             $seasonNumber = $media['title'];
-            $mediaXML = simplexml_load_file($network . ':' . $plex_port . $episodeParentKey . '/?X-Plex-Token=' . $plexToken);
+            $mediaXML = XMLCache($episodeParentKey, "recentlyadded/parentKey/$i");
             $coverArt = $mediaXML->Directory['thumb'];
             $showTitle = $mediaXML->Directory['title'];
-            $episodeXML = simplexml_load_file($network . ':' . $plex_port . $episodeKey . '/?X-Plex-Token=' . $plexToken);
-            $episodeXML->registerXPathNamespace("a", XMLNS_SOAPENV);
+            $episodeXML = XMLCache($episodeKey, "recentlyadded/episodeKey/$i");
             $lastEP = $episodeXML->Video[count($episodeXML->Video)-1];
             $episodeNumber = $lastEP['index'];
             // Truncated Summary
@@ -492,7 +536,14 @@ function makeRecentlyAdded()
             }
             // Display coverArt if we have it, otherwise use a placeholder
             if ($coverArt != null) {
-                echo '<img src="' . ($network . ':' . $plex_port . $coverArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $showTitle . '">';
+                $Sanitized_Title = Sanitize($showTitle);
+                $CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+                if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24*60*60))) {
+                    echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $showTitle . '">';
+                } else {
+                    BuildImageCache($coverArt, $Sanitized_Title);
+                    echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $showTitle . '">';
+                }
             } else {
                 echo '<img src="assets/img/placeholder.jpg">';
             }
@@ -504,7 +555,7 @@ function makeRecentlyAdded()
         } elseif ($media['type'] == 'movie' ) {
             // It's a Movie!
             $movieKey = $media['key'];
-            $mediaXML = simplexml_load_file($network . ':' . $plex_port . $movieKey . '/?X-Plex-Token=' . $plexToken);
+            $mediaXML = XMLCache($movieKey, "recentlyadded/movieKey/$i");
             $coverArt = $mediaXML->Video['thumb'];
             $movieTitle = $mediaXML->Video['title'];
             $movieYear = $mediaXML->Video['year'];
@@ -521,7 +572,14 @@ function makeRecentlyAdded()
             }
             // Display coverArt if we have it, otherwise use a placeholder
             if ($coverArt != null) {
-                echo '<img src="' . ($network . ':' . $plex_port . $coverArt . '/?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+                $Sanitized_Title = Sanitize($movieTitle);
+                $CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+                if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24*60*60))) {
+                    echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
+                } else {
+                    BuildImageCache($coverArt, $Sanitized_Title);
+                    echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
+                }
             } else {
                 echo '<img src="assets/img/placeholder.jpg">';
             }
@@ -546,14 +604,11 @@ function makeRecentlyAdded()
 function makeNowPlaying()
 {
     global $plex_port;
-    global $plexToken;
-    $network = getNetwork();
-    $plexSessionXML = simplexml_load_file($network . ':' . $plex_port . '/status/sessions?X-Plex-Token=' . $plexToken);
+    $plexSessionXML = SessionCache();
 
     if (!$plexSessionXML):
         makeRecentlyViewed();
     elseif (count($plexSessionXML->Video) == 0):
-        // makeRecentlyViewed();
         makeRecentlyAdded();
     else:
         $i = 0; // Initiate and assign a value to i & t
@@ -565,42 +620,54 @@ function makeNowPlaying()
         foreach ($plexSessionXML->Video as $sessionInfo):
             $mediaKey = $sessionInfo['key'];
             $playerTitle = $sessionInfo->Player['title'];
-            $mediaXML = simplexml_load_file($network . ':' . $plex_port . $mediaKey . '?X-Plex-Token=' . $plexToken);
+            $mediaXML = XMLCache($mediaKey, 'nowPlaying');
             $type = $mediaXML->Video['type'];
             echo '<div class="thumbnail">';
             $i++; // Increment i every pass through the array
             if ($type == "movie"):
                 // Build information for a movie
-                $movieArt = $mediaXML->Video['thumb'];
+                $coverArt = $mediaXML->Video['thumb'];
                 $movieTitle = $mediaXML->Video['title'];
+                $movieYear = $mediaXML->Video['year'];
                 $duration = $plexSessionXML->Video[$i - 1]['duration'];
                 $viewOffset = $plexSessionXML->Video[$i - 1]['viewOffset'];
                 $progress = sprintf('%.0f', ($viewOffset / $duration) * 100);
                 $user = $plexSessionXML->Video[$i - 1]->User['title'];
                 $device = $plexSessionXML->Video[$i - 1]->Player['title'];
                 $state = $plexSessionXML->Video[$i - 1]->Player['state'];
-                // Truncate movie summary if it's more than 50 words
+                // Truncated Summary
                 if (countWords($mediaXML->Video['summary']) < 51):
                     $movieSummary = $mediaXML->Video['summary'];
                 else:
                     $movieSummary = limitWords($mediaXML->Video['summary'], 50); // Limit to 50 words
-                    $movieSummary .= "..."; // Add ellipsis
+                    $movieSummary .= "...";
                 endif;
-                echo '<img src="' . ($network . ':' . $plex_port . $movieArt . '?X-Plex-Token=' . $plexToken) . '" alt="' . $movieTitle . '">';
+                // Display coverArt if we have it, otherwise use a placeholder
+                if ($coverArt != null) {
+                    $Sanitized_Title = Sanitize($movieTitle);
+                    $CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+                    if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24*60*60))) {
+                        echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
+                    } else {
+                        BuildImageCache($coverArt, $Sanitized_Title);
+                        echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
+                    }
+                } else {
+                    echo '<img src="assets/img/placeholder.jpg">';
+                }
                 // Make now playing progress bar
-                //echo 'div id="now-playing-progress-bar">';
                 echo '<div class="progress now-playing-progress-bar">';
                 echo '<div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%">';
                 echo '</div>';
                 echo '</div>';
                 echo '<div class="caption">';
-                //echo '<h2 class="exoextralight">'.$movieTitle.'</h2>';
-                echo '<p class="exolight" style="margin-top:5px;">' . $movieSummary . '</p>';
+                echo '<h3 class="exoextralight" style="margin-top:5px;">' . $movieTitle . ' (' . $movieYear . ')</h3>';
+                echo '<p>' . $movieSummary . '</p>';
+                // Playing/Paused Icons
                 if ($state == "playing"):
-                    // Show the playing icon
-                    echo '<span class="glyphicon glyphicon-play"></span>';
+                    echo '<span class="fa fa-play"></span>';
                 else:
-                    echo '<span class="glyphicon glyphicon-pause"></span>';
+                    echo '<span class="fa fa-pause"></span>';
                 endif;
                 if ($user == ""):
                     echo '<p class="exolight">' . $device . '</p>';
@@ -608,8 +675,8 @@ function makeNowPlaying()
                     echo '<p class="exolight">' . $user . '</p>';
                 endif;
             else:
-                // Build information for a tv show
-                $tvArt = $mediaXML->Video['grandparentThumb'];
+                // Build information for a TV show
+                $coverArt = $mediaXML->Video['grandparentThumb'];
                 $showTitle = $mediaXML->Video['grandparentTitle'];
                 $episodeTitle = $mediaXML->Video['title'];
                 $episodeSummary = $mediaXML->Video['summary'];
@@ -621,33 +688,41 @@ function makeNowPlaying()
                 $user = $plexSessionXML->Video[$i - 1]->User['title'];
                 $device = $plexSessionXML->Video[$i - 1]->Player['title'];
                 $state = $plexSessionXML->Video[$i - 1]->Player['state'];
-                //echo '<div class="img-overlay">';
-                echo '<img src="' . ($network . ':' . $plex_port . $tvArt . '?X-Plex-Token=' . $plexToken) . '" alt="' . $showTitle . '">';
-                // Make now playing progress bar
-                //echo 'div id="now-playing-progress-bar">';
-                echo '<div class="progress now-playing-progress-bar">';
-                echo '<div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%">';
-                echo '</div>';
-                echo '</div>';
-                //echo '</div>';
-                // Make description below thumbnail
-                echo '<div class="caption">';
-                //echo '<h2 class="exoextralight">'.$showTitle.'</h2>';
-                echo '<h3 class="exoextralight" style="margin-top:5px;">Season ' . $episodeSeason . '</h3>';
-                echo '<h4 class="exoextralight" style="margin-top:5px;">E' . $episodeNumber . ' - ' . $episodeTitle . '</h4>';
-                // Truncate episode summary if it's more than 50 words
+                // Truncated Summary
                 if (countWords($mediaXML->Video['summary']) < 51):
                     $episodeSummary = $mediaXML->Video['summary'];
                 else:
                     $episodeSummary = limitWords($mediaXML->Video['summary'], 50); // Limit to 50 words
-                    $episodeSummary .= "..."; // Add ellipsis
+                    $episodeSummary .= "...";
                 endif;
-                echo '<p class="exolight">' . $episodeSummary . '</p>';
+                // Display coverArt if we have it, otherwise use a placeholder
+                if ($coverArt != null) {
+                    $Sanitized_Title = Sanitize($showTitle);
+                    $CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+                    if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24*60*60))) {
+                        echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
+                    } else {
+                        BuildImageCache($coverArt, $Sanitized_Title);
+                        echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
+                    }
+                } else {
+                    echo '<img src="assets/img/placeholder.jpg">';
+                }
+                // Make now playing progress bar
+                echo '<div class="progress now-playing-progress-bar">';
+                echo '<div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="' . $progress . '" aria-valuemin="0" aria-valuemax="100" style="width: ' . $progress . '%">';
+                echo '</div>';
+                echo '</div>';
+                // Make description below thumbnail
+                echo '<div class="caption">';
+                echo '<h3 class="exoextralight" style="margin-top:5px;">' . $showTitle . '</h3>';
+                echo '<h4 class="exoextralight" style="margin-top:5px;">S' . $episodeSeason . 'E' . $episodeNumber . '- ' . $episodeTitle . '</h4>';
+                echo '<p>' . $episodeSummary . '</p>';
+                // Playing/Paused Icons
                 if ($state == "playing"):
-                    // Show the playing icon
-                    echo '<span class="glyphicon glyphicon-play"></span>';
+                    echo '<span class="fa fa-play"></span>';
                 else:
-                    echo '<span class="glyphicon glyphicon-pause"></span>';
+                    echo '<span class="fa fa-pause"></span>';
                 endif;
                 if ($user == ""):
                     echo '<p class="exolight">' . $device . '</p>';
@@ -655,8 +730,6 @@ function makeNowPlaying()
                     echo '<p class="exolight">' . $user . '</p>';
                 endif;
             endif;
-            // Action buttons if we ever want to do something with them.
-            //echo '<p><a href="#" class="btn btn-primary">Action</a> <a href="#" class="btn btn-default">Action</a></p>';
             echo "</div>";
             echo "</div>";
             // Should we make <hr>? Only if there is more than one video and it's not the last thumbnail created.
@@ -672,10 +745,7 @@ function makeNowPlaying()
 
 function getTranscodeSessions()
 {
-    global $plex_port;
-    global $plexToken;
-    $network = getNetwork();
-    $plexSessionXML = simplexml_load_file($network . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
+    $plexSessionXML = SessionCache();
 
     if (count($plexSessionXML->Video) > 0):
         $i = 0; // i is the variable that gets iterated each pass through the array
@@ -714,13 +784,13 @@ function getDir($b)
 
 function makeWeatherSidebar()
 {
-    global $forecast_api;
+    global $weather_api;
     global $weather_lat;
     global $weather_long;
     global $weather_units;
 
     $forecastExcludes = '?exclude=flags'; // Take a look at https://developer.forecast.io/docs/v2 to configure your weather information.
-    $currentForecast = json_decode(file_get_contents('https://api.forecast.io/forecast/' . $forecast_api . '/' . $weather_lat . ',' . $weather_long . $forecastExcludes . '&units=' . $weather_units));
+    $currentForecast = json_decode(file_get_contents('https://api.forecast.io/forecast/' . $weather_api . '/' . $weather_lat . ',' . $weather_long . $forecastExcludes . '&units=' . $weather_units));
 
     $currentSummary = $currentForecast->currently->summary;
     $currentSummaryIcon = $currentForecast->currently->icon;
@@ -768,13 +838,7 @@ function makeWeatherSidebar()
         'partly-cloudy-night' => 'I',
     ];
     $weatherIcon = $weatherIcons[$currentSummaryIcon];
-    // If there is a severe weather warning, display it
-    //if (isset($currentForecast->alerts)) {
-    //	echo '<div class="alert alert-warning alert-dismissable">';
-    //	echo '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>';
-    //	echo '<strong><a href="'.$alertUri.'" class="alert-link">'.$alertTitle.'</a></strong>';
-    //	echo '</div>';
-    //}
+
     echo '<ul class="list-inline" style="margin-bottom:-20px">';
     echo '<li><h1 data-icon="' . $weatherIcon . '" style="font-size:500%;margin:0px -10px 20px -5px"></h1></li>';
     echo '<li><ul class="list-unstyled">';
@@ -801,6 +865,7 @@ function makeWeatherSidebar()
     echo '<h4 class="exoregular">The Sun</h4>';
     echo '<h5 class="exoextralight" style="margin-top:10px">' . $rises . ' at ' . date('g:i A', $sunriseTime) . '</h5>';
     echo '<h5 class="exoextralight" style="margin-top:10px">' . $sets . ' at ' . date('g:i A', $sunsetTime) . '</h5>';
+    // echo '<p class="text-right no-link-color" style="margin-bottom:-10px"><small><a href="http://forecast.io/#/f/' . $weather_lat . ',' . $weather_long . '">Forecast.io</a></small></p> ';
 }
 
 ?>

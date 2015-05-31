@@ -13,15 +13,15 @@ $detect = new Mobile_Detect;
 <head>
 	<meta charset="utf-8">
 	<title>Network Status Page</title>
-	<meta name="author" content="d4rk">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="apple-mobile-web-app-title" content="d4rk">
+	<!-- Apple Device specific tags -->
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black">
-	<link rel="stylesheet" href="assets/fonts/stylesheet.css">
-	<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+	<!-- Le styles -->
+	<link href="assets/fonts/stylesheet.css" rel="stylesheet">
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
 	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
-	<link rel="shortcut icon" href="assets/ico/favicon.ico">
 	<style type="text/css">
 		::-webkit-scrollbar {
 			display: none;
@@ -70,6 +70,7 @@ $detect = new Mobile_Detect;
 		.carousel-control.right {
 			background-image: none;
 		}
+
 		/* End of carousel shadow modification */
 
 		/* Now Playing Progress Bar CSS */
@@ -81,13 +82,17 @@ $detect = new Mobile_Detect;
 			-moz-border-radius: 0px;
 			border-radius: 0px;
 		}
+
 		/* End of Now Playing Progress Bar CSS */
 
 		.panel-white-bg {
 			background-color: #ffffff;
 		}
 
+		/* End of Ping ID hack */
 	</style>
+	<link rel="apple-touch-icon-precomposed" href="/assets/ico/apple-touch-icon.png"/>
+	<link rel="shortcut icon" href="assets/ico/favicon.ico">
 </head>
 <body>
 <div class="container">
@@ -118,6 +123,7 @@ $detect = new Mobile_Detect;
 								<li><a href="#contactModal" data-toggle="modal"><i class="fa fa-envelope"></i>
 										Contact</a></li>
 							</ul>
+							<!-- <div id="left_column_top"></div> -->
 						</div>
 					</div>
 					<!-- Weather -->
@@ -136,26 +142,24 @@ $detect = new Mobile_Detect;
 				<div class="col-md-6">
 					<div id="now_playing_title"></div>
 					<?php echo '<div id="now_playing"';
-					// Check to see if were on a mobile device because overflow scrolling sucks on them.
-					// If were on a cellphone disable the overflow:auto feature
-					if ( $detect->isMobile() ) {
+					// Check to see if we're on a mobile device because overflow scrolling sucks on them.
+					// If we're on a cellphone disable the overflow:auto feature.
+					if ( $detect->isMobile() ):
 						echo '>';
-					} else {
+					else:
 						echo ' style="overflow:auto;">';
-					}
+					endif;
 					echo '</div>'; ?>
 					<hr class="visible-xs visible-sm">
 				</div>
 				<!-- Right sidebar -->
 				<?php echo '<div class="col-md-3"';
 				// Only apply padding on top of this column if its not on a cell phone but exclude tablets
-				if ( $detect->isMobile() && ! $detect->isTablet() ) {
+				if ( $detect->isMobile() && ! $detect->isTablet() ):
 					echo '>';
-				}
-				else
-				{
+				else:
 					echo ' style="padding-top: 20px;">';
-				} ?>
+				endif; ?>
 				<!-- Load Panel -->
 				<div class="panel panel-default">
 					<div class="panel-heading">
@@ -164,6 +168,9 @@ $detect = new Mobile_Detect;
 					</div>
 					<div class="panel-body">
 						<div id="system_load" style="margin-bottom:-10px"></div>
+						<!--	<h4 class="exoextralight">Memory</h4>
+							<div id="system_ram" style="height:40px"></div>
+							<hr>	-->
 					</div>
 				</div>
 				<!-- Storage Panel -->
@@ -236,6 +243,7 @@ $detect = new Mobile_Detect;
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
+					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
 				},
@@ -245,6 +253,7 @@ $detect = new Mobile_Detect;
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
+					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
 				},
@@ -254,6 +263,7 @@ $detect = new Mobile_Detect;
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
+					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
 				}
@@ -266,10 +276,12 @@ $detect = new Mobile_Detect;
 			var $system_load_refresh = $('#system_load');
 			var $transcodeSessions = $('#transcodeSessions');
 			var $disk_space_refresh = $('#disk_space');
+			var $now_playing_progress_bar_refresh = $('#now_playing_progress_bar');
 			var $now_playing_title_refresh = $('#now_playing_title');
 			var $now_playing_refresh = $('#now_playing');
 
 			// Load external php files & assign variables
+			$now_playing_progress_bar_refresh.load("assets/php/now_playing_progress_bar.php");
 			$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
 			$now_playing_refresh.load("assets/php/now_playing_ajax.php");
 			$plex_check_refresh.load('assets/php/plex_check_ajax.php');
@@ -298,6 +310,10 @@ $detect = new Mobile_Detect;
 			var refreshIdslow = setInterval(function () {
 				$disk_space_refresh.load('assets/php/disk_space_ajax.php');
 			}, 120000); // 2 minutes
+
+			var refreshIdslow = setInterval(function () {
+				$now_playing_progress_bar_refresh.load("assets/php/now_playing_progress_bar.php");
+			}, 60000); // 1 minutes
 
 			var refreshtopleft = setInterval(function () {
 				_refresh.load('assets/php/left_column_mid_ajax.php');

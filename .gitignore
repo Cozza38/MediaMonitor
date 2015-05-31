@@ -2,6 +2,13 @@ assets/caches/plex_token.txt
 assets/caches/plexcheckfile1.txt
 assets/caches/plexcheckfile2.txt
 assets/php/analyticstracking.php
+assets/caches/images/*
+assets/caches/recentlyadded/episodeKey/*
+assets/caches/recentlyadded/movieKey/*
+assets/caches/recentlyadded/parentKey/*
+assets/caches/recentlyadded/recentlyAdded.xml
+assets/caches/nowPlaying.xml
+assets/caches/session.xml
 private/
 vendor/
 composer.lock

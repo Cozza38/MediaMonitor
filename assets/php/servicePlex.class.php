@@ -13,13 +13,12 @@ class servicePlex {
 	public $status;
 
 
-	function __construct($name, $port, $url = "", $host = "localhost", $plexToken)
+	function __construct($name, $port, $url = "", $host = "localhost")
 	{
 		$this->name      = $name;
 		$this->port      = $port;
 		$this->url       = $url;
 		$this->host      = $host;
-		$this->plexToken = $plexToken;
 
 		$this->status = $this->check_port();
 	}
@@ -27,7 +26,7 @@ class servicePlex {
 
 	function check_port()
 	{
-		$conn = simplexml_load_file('http://' . $this->host . ':' . $this->port . '/?X-Plex-Token=' . $this->plexToken);
+		$conn = simplexml_load_file('http://' . $this->host . ':' . $this->port);
 		if ( $conn != null )
 		{
 			return true;
@@ -41,12 +40,11 @@ class servicePlex {
 
 	function makeButton()
 	{
-		$icon   = '<i class="icon-' . ( $this->status ? 'ok' : 'remove' ) . ' icon-white"></i>';
-		$btn    = $this->status ? 'success' : 'warning';
-		$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" class="btn btn-xs btn-' . $btn . '">';
+		$btn    = $this->status ? 'success' : 'danger';
+		$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '">';
 		$txt    = $this->status ? 'Online' : 'Offline';
 		$suffix = $this->url == "" ? '</button>' : '</a>';
 
-		return $prefix . $icon . " " . $txt . $suffix;
+		return $prefix . $txt . $suffix;
 	}
 }

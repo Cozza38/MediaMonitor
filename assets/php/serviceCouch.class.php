@@ -59,12 +59,11 @@ class serviceCouch {
 
 	function makeButton()
 	{
-		$icon   = '<i class="icon-' . ( $this->status ? 'ok' : 'remove' ) . ' icon-white"></i>';
-		$btn    = $this->status ? 'success' : 'warning';
-		$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" class="btn btn-xs btn-' . $btn . '">';
+		$btn    = $this->status ? 'success' : 'danger';
+		$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '">';
 		$txt    = $this->status ? 'Online' : 'Offline';
 		$suffix = $this->url == "" ? '</button>' : '</a>';
 
-		return $prefix . $icon . " " . $txt . $suffix;
+		return $prefix . $txt . $suffix;
 	}
 }
