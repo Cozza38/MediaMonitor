@@ -9,7 +9,7 @@ assets/caches/recentlyadded/parentKey/*
 assets/caches/recentlyadded/recentlyAdded.xml
 assets/caches/nowPlaying.xml
 assets/caches/session.xml
-private/
+private/config.ini
 vendor/
 composer.lock
 .idea/
