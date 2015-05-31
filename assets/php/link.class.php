@@ -3,11 +3,8 @@
 class link {
 
 	public $name;
-
 	public $url;
-
 	public $ico;
-
 	public $prefix;
 
 

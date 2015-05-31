@@ -93,12 +93,6 @@ $detect = new Mobile_Detect;
 			color: #FFF;
 		}
 		/* End of Ping ID hack */
-
-		.placeholderRecentlyAdded {
-			background-position: center;
-			background-size: cover;
-			box-shadow: 0 0 4px rgba(0, 0, 0, .3), inset 0 0 0 1px rgba(255, 255, 255, .1);
-		}
 	</style>
 	<link rel="apple-touch-icon-precomposed" href="/assets/ico/apple-touch-icon.png"/>
 	<link rel="shortcut icon" href="assets/ico/favicon.ico">
@@ -248,67 +242,57 @@ $detect = new Mobile_Detect;
 				cache: false,
 				beforeSend: function () {
 					$('#left_column_mid').show();
-					$('#bandwidth').show();
-					$('#ping').show();
 					$('#services').show();
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
+					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
-					$('#ups_status').show();
 				},
 				complete: function () {
 					$('#left_column_mid').show();
-					$('#bandwidth').show();
-					$('#ping').show();
 					$('#services').show();
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
+					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
-					$('#ups_status').show();
 				},
 				success: function () {
 					$('#left_column_mid').show();
-					$('#bandwidth').show();
-					$('#ping').show();
 					$('#services').show();
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
+					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
-					$('#ups_status').show();
 				}
 			});
 
 			// Assign varibles to DOM sections
 			var $plex_check_refresh = $('#plex_check');
 			var $left_column_mid_refresh = $('#left_column_mid');
-			var $bandwidth_refresh = $('#bandwidth');
-			var $ping_refresh = $('#ping');
 			var $services_refresh = $('#services');
 			var $system_load_refresh = $('#system_load');
 			var $transcodeSessions = $('#transcodeSessions');
 			var $disk_space_refresh = $('#disk_space');
+			var $now_playing_progress_bar_refresh = $('#now_playing_progress_bar');
 			var $now_playing_title_refresh = $('#now_playing_title');
 			var $now_playing_refresh = $('#now_playing');
-			var $ups_status_refresh = $('#ups_status');
 
 			// Load external php files & assign variables
+			$now_playing_progress_bar_refresh.load("assets/php/now_playing_progress_bar.php");
 			$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
 			$now_playing_refresh.load("assets/php/now_playing_ajax.php");
 			$plex_check_refresh.load('assets/php/plex_check_ajax.php');
 			$left_column_mid_refresh.load('assets/php/left_column_mid_ajax.php');
-			$bandwidth_refresh.load("assets/php/bandwidth_ajax.php");
-			$ping_refresh.load("assets/php/ping_ajax.php");
 			$services_refresh.load("assets/php/services_ajax.php");
 			$system_load_refresh.load("assets/php/system_load_ajax.php");
 			$transcodeSessions.load("assets/php/transcode_sessions_ajax.php");
 			$disk_space_refresh.load("assets/php/disk_space_ajax.php");
-			$ups_status_refresh.load("assets/php/ups_status_ajax.php");
 
 			var refreshIdfastest = setInterval(function () {
 				$plex_check_refresh.load('assets/php/plex_check_ajax.php');
@@ -319,10 +303,7 @@ $detect = new Mobile_Detect;
 			}, 5000); // 5 seconds
 
 			var refreshId30 = setInterval(function () {
-				$bandwidth_refresh.load("assets/php/bandwidth_ajax.php");
-				$ping_refresh.load("assets/php/ping_ajax.php");
 				$services_refresh.load("assets/php/services_ajax.php");
-				$ups_status_refresh.load('assets/php/ups_status_ajax.php');
 			}, 30000); // 30 seconds
 
 			var refreshId60 = setInterval(function () {
@@ -332,6 +313,10 @@ $detect = new Mobile_Detect;
 			var refreshIdslow = setInterval(function () {
 				$disk_space_refresh.load('assets/php/disk_space_ajax.php');
 			}, 120000); // 2 minutes
+
+			var refreshIdslow = setInterval(function () {
+				$now_playing_progress_bar_refresh.load("assets/php/now_playing_progress_bar.php");
+			}, 60000); // 1 minutes
 
 			var refreshtopleft = setInterval(function () {
 				_refresh.load('assets/php/left_column_mid_ajax.php');

@@ -46,26 +46,42 @@ class serviceSAB {
 	function makeButton()
 	{
 		$protocol = protocolCheck($this->ssl);
-		$sabnzbdXML = simplexml_load_file( $protocol . $this->host . ':' . $this->port . '/api?mode=qstatus&output=xml&apikey=' . $this->api);
+		$sabnzbdXML = simplexml_load_file( $protocol . $this->host . ':' . $this->port . '/sabnzbd/api?mode=qstatus&output=xml&apikey=' . $this->api);
+		$sabState = $sabnzbdXML->state;
+		$speed = filter_var(($sabnzbdXML->speed), FILTER_SANITIZE_NUMBER_INT);
+		$mb = $sabnzbdXML->jobs->job[0]->mb;
+		$mbleft = $sabnzbdXML->jobs->job[0]->mbleft;
+		$downloadedPercent = intval(($mb-$mbleft)/$mb * 100)."%";
+		// Truncated Filename
+		if (strlen($sabnzbdXML->jobs->job[0]->filename) < 18)
+		{
+			$filename = $sabnzbdXML->jobs->job[0]->filename;
+		} else {
+			$filename = substr(($sabnzbdXML->jobs->job[0]->filename), 0, 18);
+			$filename .= "...";
+		}
 
-		if ( ( $sabnzbdXML->state ) == 'Downloading' ):
-			$speed = $sabnzbdXML->speed;
-			if ( strpbrk($speed, 'K') ):
-				// This converts the speed from KBps or MBps to Mbps
-				$convertedSpeed = number_format(( substr($speed, 0, ( strlen($speed) - 2 )) * 8 / 1024 ), 1);
-			else:
-				$convertedSpeed = number_format(( substr($speed, 0, ( strlen($speed) - 2 )) * 8 ), 0);
-			endif;
-			$icon = '<i class="icon-' . ( $this->status ? 'download-alt' : 'remove' ) . ' icon-white"></i>';
-			$txt  = $this->status ? $convertedSpeed . 'Mb' : 'Offline';
-		else:
-			$icon = '<i class="icon-' . ( $this->status ? 'ok' : 'remove' ) . ' icon-white"></i>';
+
+		if ( $sabState == 'Downloading' )
+		{
+			if ( strpbrk(($sabnzbdXML->speed), 'K') )
+			{
+				$txt  = $this->status ? $speed . ' KB/s' : 'Offline';
+			} else {
+				$txt  = $this->status ? $speed . ' MB/s' : 'Offline';
+			}
+			$btn    = $this->status ? 'success' : 'danger';
+			$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '"rel="tooltip" data-toggle="tooltip" data-placement="bottom" title="'. $downloadedPercent . ' - ' . $filename .'">';
+		} elseif ( $sabState == 'Paused' ) {
+			$txt  = $this->status ? 'Paused' : 'Offline';
+			$btn    = $this->status ? 'warning' : 'danger';
+			$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '"rel="tooltip" data-toggle="tooltip" data-placement="bottom" title="'. $downloadedPercent . ' - ' . $filename .'">';
+		} else {
 			$txt  = $this->status ? 'Online' : 'Offline';
-		endif;
-		$btn    = $this->status ? 'success' : 'warning';
-		$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" class="btn btn-xs btn-' . $btn . '">';
+			$btn    = $this->status ? 'success' : 'danger';
+			$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '">';
+		}
 		$suffix = $this->url == "" ? '</button>' : '</a>';
-
-		return $prefix . $icon . " " . $txt . $suffix;
+		return $prefix . $txt . $suffix;
 	}
 }

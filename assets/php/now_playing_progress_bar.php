@@ -3,8 +3,7 @@ ini_set('display_errors', true);
 include '../../init.php';
 include 'functions.php';
 
-$network        = getNetwork();
-$plexSessionXML = simplexml_load_file($network . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
+$plexSessionXML = SessionCache();
 
 $plexSessionID = $_GET['id'];
 
