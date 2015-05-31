@@ -15,6 +15,7 @@ $detect = new Mobile_Detect;
 	<title>Network Status Page</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<!-- Apple Device specific tags -->
+	<meta name="apple-mobile-web-app-title" content="MediaMonitor">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black">
 	<!-- Le styles -->
@@ -70,7 +71,6 @@ $detect = new Mobile_Detect;
 		.carousel-control.right {
 			background-image: none;
 		}
-
 		/* End of carousel shadow modification */
 
 		/* Now Playing Progress Bar CSS */
@@ -82,13 +82,16 @@ $detect = new Mobile_Detect;
 			-moz-border-radius: 0px;
 			border-radius: 0px;
 		}
-
 		/* End of Now Playing Progress Bar CSS */
 
 		.panel-white-bg {
 			background-color: #ffffff;
 		}
 
+		/* Disables ping ID looking like a link and makes it look white */
+		a#ping.badge.pull-right {
+			color: #FFF;
+		}
 		/* End of Ping ID hack */
 	</style>
 	<link rel="apple-touch-icon-precomposed" href="/assets/ico/apple-touch-icon.png"/>
