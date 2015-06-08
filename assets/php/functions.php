@@ -23,6 +23,7 @@ $wan_ip = $network['wan_ip'];
 $domain_name = $network['domain_name'];
 
 // Plex
+$plex_ssl = $plex['plex_ssl'];
 $plex_username = $plex['plex_username'];
 $plex_password = $plex['plex_password'];
 $plex_server_ip = $plex['plex_server_ip'];
@@ -390,7 +391,8 @@ function XMLCache($Path, $Name)
     global $plex_port;
     global $plexToken;
 
-    $XML = file_get_contents('http://' . $plex_server_ip . ':' . $plex_port . "{$Path}/?X-Plex-Token=". $plexToken);
+    $protocol = protocolCheck($plex_ssl);
+    $XML = file_get_contents($protocol . $plex_server_ip . ':' . $plex_port . "{$Path}/?X-Plex-Token=". $plexToken);
     $CachePath = ROOT_DIR . "/assets/caches/{$Name}.xml";
 
     if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 60))) {
@@ -419,7 +421,8 @@ function SessionCache()
     global $plex_port;
     global $plexToken;
 
-    $SessionXML = file_get_contents('http://' . $plex_server_ip . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
+    $protocol = protocolCheck($plex_ssl);
+    $SessionXML = file_get_contents($protocol . $plex_server_ip . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
     $CachePath = ROOT_DIR . '/assets/caches/session.xml';
 
     if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 30))) {
@@ -439,10 +442,11 @@ function BuildImageCache($CoverArt, $Title)
 {
     global $plex_server_ip;
     global $plex_port;
+    $protocol = protocolCheck($plex_ssl);
     $CachePath = ROOT_DIR . '/assets/caches/images/' . $Title . '.jpg';
-
-    $ch = curl_init('http://' . $plex_server_ip . ':' . $plex_port . $CoverArt);
+    $ch = curl_init($protocol . $plex_server_ip . ':' . $plex_port . $CoverArt);
     $SaveCache = fopen($CachePath, "w");
+
     curl_setopt($ch, CURLOPT_FILE, $SaveCache);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_exec($ch);
