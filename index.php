@@ -246,7 +246,6 @@ $detect = new Mobile_Detect;
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
-					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
 				},
@@ -256,7 +255,6 @@ $detect = new Mobile_Detect;
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
-					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
 				},
@@ -266,7 +264,6 @@ $detect = new Mobile_Detect;
 					$('#system_load').show();
 					$('#transcodeSessions').show();
 					$('#disk_space').show();
-					$('#now_playing_progress_bar').show();
 					$('#now_playing_title').show();
 					$('#now_playing').show();
 				}
@@ -279,12 +276,10 @@ $detect = new Mobile_Detect;
 			var $system_load_refresh = $('#system_load');
 			var $transcodeSessions = $('#transcodeSessions');
 			var $disk_space_refresh = $('#disk_space');
-			var $now_playing_progress_bar_refresh = $('#now_playing_progress_bar');
 			var $now_playing_title_refresh = $('#now_playing_title');
 			var $now_playing_refresh = $('#now_playing');
 
 			// Load external php files & assign variables
-			$now_playing_progress_bar_refresh.load("assets/php/now_playing_progress_bar.php");
 			$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
 			$now_playing_refresh.load("assets/php/now_playing_ajax.php");
 			$plex_check_refresh.load('assets/php/plex_check_ajax.php');
@@ -313,10 +308,6 @@ $detect = new Mobile_Detect;
 			var refreshIdslow = setInterval(function () {
 				$disk_space_refresh.load('assets/php/disk_space_ajax.php');
 			}, 120000); // 2 minutes
-
-			var refreshIdslow = setInterval(function () {
-				$now_playing_progress_bar_refresh.load("assets/php/now_playing_progress_bar.php");
-			}, 60000); // 1 minutes
 
 			var refreshtopleft = setInterval(function () {
 				_refresh.load('assets/php/left_column_mid_ajax.php');

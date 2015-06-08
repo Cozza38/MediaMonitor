@@ -48,19 +48,20 @@ class serviceSAB {
 		$protocol = protocolCheck($this->ssl);
 		$sabnzbdXML = simplexml_load_file( $protocol . $this->host . ':' . $this->port . '/sabnzbd/api?mode=qstatus&output=xml&apikey=' . $this->api);
 		$sabState = $sabnzbdXML->state;
-		$speed = filter_var(($sabnzbdXML->speed), FILTER_SANITIZE_NUMBER_INT);
-		$mb = $sabnzbdXML->jobs->job[0]->mb;
-		$mbleft = $sabnzbdXML->jobs->job[0]->mbleft;
-		$downloadedPercent = intval(($mb-$mbleft)/$mb * 100)."%";
-		// Truncated Filename
-		if (strlen($sabnzbdXML->jobs->job[0]->filename) < 18)
-		{
-			$filename = $sabnzbdXML->jobs->job[0]->filename;
-		} else {
-			$filename = substr(($sabnzbdXML->jobs->job[0]->filename), 0, 18);
-			$filename .= "...";
-		}
 
+		if ($sabState == 'Downloading' || 'Paused') {
+			$speed = filter_var(($sabnzbdXML->speed), FILTER_SANITIZE_NUMBER_INT);
+			$mb = $sabnzbdXML->jobs->job[0]->mb;
+			$mbleft = $sabnzbdXML->jobs->job[0]->mbleft;
+			$downloadedPercent = intval(($mb-$mbleft)/$mb * 100)."%";
+			// Truncated Filename
+			if (strlen($sabnzbdXML->jobs->job[0]->filename) < 18) {
+				$filename = $sabnzbdXML->jobs->job[0]->filename;
+			} else {
+				$filename = substr(($sabnzbdXML->jobs->job[0]->filename), 0, 18);
+				$filename .= "...";
+			}
+		}
 
 		if ( $sabState == 'Downloading' )
 		{
