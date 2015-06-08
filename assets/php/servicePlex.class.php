@@ -13,13 +13,13 @@ class servicePlex {
 	public $status;
 
 
-	function __construct($name, $port, $url = "", $host = "localhost")
+	function __construct($name, $port, $url = "", $host, $ssl)
 	{
 		$this->name      = $name;
 		$this->port      = $port;
 		$this->url       = $url;
 		$this->host      = $host;
-		$this->ssl		 = $ssl;
+		$this->ssl 		 = $ssl;
 
 		$this->status = $this->check_port();
 	}
