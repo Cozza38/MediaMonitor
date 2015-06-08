@@ -249,12 +249,12 @@ function printBar($value, $name = "")
 
 function printRamBar($percent, $name = "", $used, $total)
 	{
-	if ($percent < 90)
+	if ($percent < 75)
 		{
 		$progress = "progress-bar";
 		}
 	  else
-	if (($percent >= 90) && ($percent < 95))
+	if (($percent >= 75) && ($percent < 90))
 		{
 		$progress = "progress-bar progress-bar-warning";
 		}
@@ -278,12 +278,12 @@ function printDiskBar($dup, $name = "", $dsu, $dts)
 
 	// Using autoByteFormat() the amount of space will be formatted as GB or TB as needed.
 
-	if ($dup < 90)
+	if ($dup < 75)
 		{
 		$progress = "progress-bar";
 		}
 	  else
-	if (($dup >= 90) && ($dup < 95))
+	if (($dup >= 75) && ($dup < 95))
 		{
 		$progress = "progress-bar progress-bar-warning";
 		}
@@ -307,12 +307,12 @@ function printTotalDiskBar($dup, $name = "", $dsu, $dts)
 
 	// Using autoByteFormat() the amount of space will be formatted as GB or TB as needed.
 
-	if ($dup < 95)
+	if ($dup < 75)
 		{
 		$progress = "progress-bar";
 		}
 	  else
-	if (($dup >= 95) && ($dup < 99))
+	if (($dup >= 75) && ($dup < 90))
 		{
 		$progress = "progress-bar progress-bar-warning";
 		}
