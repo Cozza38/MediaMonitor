@@ -3,13 +3,9 @@
 class serviceCouch {
 
 	public $name;
-
 	public $port;
-
 	public $url;
-
 	public $host;
-
 	public $status;
 
 
@@ -59,11 +55,11 @@ class serviceCouch {
 
 	function make_button()
 	{
-		$btn    = $this->status ? 'success' : 'danger';
-		$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '">';
-		$txt    = $this->status ? 'Online' : 'Offline';
-		$suffix = $this->url == "" ? '</button>' : '</a>';
+		$btn_status = $this->status ? 'success' : 'danger';
+		$btn_prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn_status . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn_status . '">';
+		$btn_txt    = $this->status ? 'Online' : 'Offline';
+		$btn_suffix = $this->url == "" ? '</button>' : '</a>';
 
-		return $prefix . $txt . $suffix;
+		return $btn_prefix . $btn_txt . $btn_suffix;
 	}
 }

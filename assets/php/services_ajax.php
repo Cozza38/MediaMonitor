@@ -16,11 +16,16 @@ include( "serviceCouch.class.php" );
 	});
 </script>
 <?php
+$plex_protocol = protocolCheck($plex_ssl);
+$sab_protocol = protocolCheck($sab_ssl);
+$sonarr_protocol = protocolCheck($sonarr_ssl);
+$couch_protocol = protocolCheck($couch_ssl);
+
 $services = array(
-	new servicePlex("Plex", $plex_port, ( 'https://plex.tv/web' ), $plex_server_ip, $plex_ssl),
-	new ServiceSAB("SABnzbd", $sab_port, ( 'https://' . $domain_name . '/sabnzbd' ), $sab_ip, $sabnzbd_api, $sab_ssl),
-	new serviceSonarr("Sonarr", $sonarr_port, ('https://' . $domain_name . '/tv'), $sonarr_ip, $sonarr_api, $sonarr_ssl),
-	new serviceCouch("CouchPotato", $couch_port, ('https://' . $domain_name . '/movies') , $couch_ip, $couchpotato_api, $couch_ssl),
+	new servicePlex("Plex", $plex_port, ($plex_protocol . 'plex.tv/web' ), $plex_server_ip, $plex_ssl),
+	new serviceSAB("SABnzbd", $sab_port, ($sab_protocol . $domain_name . '/sabnzbd' ), $sab_ip, $sabnzbd_api, $sab_ssl),
+	new serviceSonarr("Sonarr", $sonarr_port, ($sonarr_protocol . $domain_name . '/tv'), $sonarr_ip, $sonarr_api, $sonarr_ssl),
+	new serviceCouch("CouchPotato", $couch_port, ($couch_protocol . $domain_name . '/movies') , $couch_ip, $couchpotato_api, $couch_ssl),
 );
 ?>
 <table class="table">
