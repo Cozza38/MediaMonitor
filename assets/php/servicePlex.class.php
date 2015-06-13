@@ -40,7 +40,7 @@ class servicePlex {
 	}
 
 
-	function makeButton()
+	function make_button()
 	{
 		$btn    = $this->status ? 'success' : 'danger';
 		$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . ' disabled">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '">';

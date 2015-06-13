@@ -1,16 +1,12 @@
 <?php
 include_once( "functions.php" );
 
-class serviceSAB {
+class ServiceSAB {
 
 	public $name;
-
 	public $port;
-
 	public $url;
-
 	public $host;
-
 	public $status;
 
 
@@ -43,46 +39,51 @@ class serviceSAB {
 	}
 
 
-	function makeButton()
+	function make_button()
 	{
 		$protocol = protocolCheck($this->ssl);
-		$sabnzbdXML = simplexml_load_file( $protocol . $this->host . ':' . $this->port . '/sabnzbd/api?mode=qstatus&output=xml&apikey=' . $this->api);
-		$sabState = $sabnzbdXML->state;
+		$sabnzbd_xml = simplexml_load_file( $protocol . $this->host . ':' . $this->port . '/sabnzbd/api?mode=queue&output=xml&apikey=' . $this->api);
+		$sab_state = $sabnzbd_xml->status;
+		$sab_items = $sabnzbd_xml->slots;
 
-		if ($sabState == 'Downloading' || 'Paused') {
-			$speed = filter_var(($sabnzbdXML->speed), FILTER_SANITIZE_NUMBER_INT);
-			$mb = $sabnzbdXML->jobs->job[0]->mb;
-			$mbleft = $sabnzbdXML->jobs->job[0]->mbleft;
-			$downloadedPercent = intval(($mb-$mbleft)/$mb * 100)."%";
-			// Truncated Filename
-			if (strlen($sabnzbdXML->jobs->job[0]->filename) < 18) {
-				$filename = $sabnzbdXML->jobs->job[0]->filename;
-			} else {
-				$filename = substr(($sabnzbdXML->jobs->job[0]->filename), 0, 18);
-				$filename .= "...";
-			}
-		}
+		if ($sab_state == 'Downloading') {
+			$sab_speed = filter_var(($sabnzbd_xml->speed), FILTER_SANITIZE_NUMBER_INT);
+			foreach ($sab_items->slot as $sab_item) {
 
-		if ( $sabState == 'Downloading' )
-		{
-			if ( strpbrk(($sabnzbdXML->speed), 'K') )
-			{
-				$txt  = $this->status ? $speed . ' KB/s' : 'Offline';
-			} else {
-				$txt  = $this->status ? $speed . ' MB/s' : 'Offline';
+				if ($sab_item->status == 'Downloading') {
+					$item_mb = $sab_item->mb;
+					$item_mbleft = $sab_item->mbleft;
+					$item_percent = $sab_item->percentage . "%";
+					// Truncate Filename
+					if (strlen($sab_item->filename) < 18) {
+						$item_filename = $sab_item->filename;
+					} else {
+							$item_filename = substr(($sab_item->filename), 0, 18);
+							$item_filename .= "...";
+					}
+					if ( strpbrk(($sabnzbd_xml->speed), 'K')) {
+						$btn_txt  = $this->status ? $sab_speed . ' KB/s' : 'Offline';
+					} elseif ( strpbrk(($sabnzbd_xml->speed), 'M')) {
+						$btn_txt  = $this->status ? $sab_speed . ' MB/s' : 'Offline';
+					} else {
+						$btn_txt  = $this->status ? $sab_speed . ' KB/s' : 'Offline';
+					}
+					$btn_status    = $this->status ? 'success' : 'danger';
+					$btn_prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn_status . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn_status . '"rel="tooltip" data-toggle="tooltip" data-placement="bottom" title="'. $item_percent . ' - ' . $item_filename .'">';
+					// We found what we need, lets get out of here
+					break;
+				}
 			}
-			$btn    = $this->status ? 'success' : 'danger';
-			$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '"rel="tooltip" data-toggle="tooltip" data-placement="bottom" title="'. $downloadedPercent . ' - ' . $filename .'">';
-		} elseif ( $sabState == 'Paused' ) {
-			$txt  = $this->status ? 'Paused' : 'Offline';
-			$btn    = $this->status ? 'warning' : 'danger';
-			$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '"rel="tooltip" data-toggle="tooltip" data-placement="bottom" title="'. $downloadedPercent . ' - ' . $filename .'">';
+		} elseif ($sab_item->status == 'Paused') {
+			$btn_txt  = $this->status ? 'Paused' : 'Offline';
+			$btn_status    = $this->status ? 'warning' : 'danger';
+			$btn_prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn_status . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn_status . '"rel="tooltip" data-toggle="tooltip" data-placement="bottom" title="'. $item_percent . ' - ' . $item_filename .'">';
 		} else {
-			$txt  = $this->status ? 'Online' : 'Offline';
-			$btn    = $this->status ? 'success' : 'danger';
-			$prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn . '">';
+			$btn_txt  = $this->status ? 'Online' : 'Offline';
+			$btn_status    = $this->status ? 'success' : 'danger';
+			$btn_prefix = $this->url == "" ? '<button style="width:62px" class="btn btn-xs btn-' . $btn_status . '">' : '<a href="' . $this->url . '" style="width:62px" target="_blank" class="btn btn-xs btn-' . $btn_status . '">';
 		}
-		$suffix = $this->url == "" ? '</button>' : '</a>';
-		return $prefix . $txt . $suffix;
+		$btn_suffix = $this->url == "" ? '</button>' : '</a>';
+		return $btn_prefix . $btn_txt . $btn_suffix;
 	}
 }

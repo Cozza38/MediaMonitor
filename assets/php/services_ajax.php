@@ -18,7 +18,7 @@ include( "serviceCouch.class.php" );
 <?php
 $services = array(
 	new servicePlex("Plex", $plex_port, ( 'https://plex.tv/web' ), $plex_server_ip, $plex_ssl),
-	new serviceSAB("SABnzbd", $sab_port, ( 'https://' . $domain_name . '/sabnzbd' ), $sab_ip, $sabnzbd_api, $sab_ssl),
+	new ServiceSAB("SABnzbd", $sab_port, ( 'https://' . $domain_name . '/sabnzbd' ), $sab_ip, $sabnzbd_api, $sab_ssl),
 	new serviceSonarr("Sonarr", $sonarr_port, ('https://' . $domain_name . '/tv'), $sonarr_ip, $sonarr_api, $sonarr_ssl),
 	new serviceCouch("CouchPotato", $couch_port, ('https://' . $domain_name . '/movies') , $couch_ip, $couchpotato_api, $couch_ssl),
 );
@@ -29,7 +29,7 @@ $services = array(
 		?>
 		<tr>
 			<td style="text-align: right; padding-right:5px;" class="exoextralight"><?php echo $service->name; ?></td>
-			<td style="text-align: left;"><?php echo $service->makeButton(); ?></td>
+			<td style="text-align: left;"><?php echo $service->make_button(); ?></td>
 		</tr>
 	<?php } ?>
 </table>
