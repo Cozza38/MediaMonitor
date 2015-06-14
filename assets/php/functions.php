@@ -2,6 +2,7 @@
 $config_path = ROOT_DIR . '/private/config.ini'; //path to config file, recommend you place it outside of web root
 Ini_Set('display_errors', true);
 include (ROOT_DIR . '/init.php');
+include ROOT_DIR . '/assets/php/plex.php';
 
 $config = parse_ini_file($config_path, true);
 $network = $config['network'];
@@ -85,8 +86,6 @@ $plexTokenCache = ROOT_DIR . '/assets/caches/plex_token.txt';
 
 // Check to see if the plex token exists and is younger than one week
 // if not grab it and write it to our caches folder
-
-include ROOT_DIR . '/assets/php/plex.php';
 
 if (file_exists($plexTokenCache) && (filemtime($plexTokenCache) > (time() - 60 * 60 * 24 * 7)))
 	{
@@ -396,32 +395,19 @@ function xml_cache($url, $cache_name)
 	}
 }
 
-function SessionCache()
+function getSession()
 	{
 	global $plex_server_ip;
 	global $plex_port;
 	global $plex_ssl;
 	global $plexToken;
 	$protocol = protocolCheck($plex_ssl);
-	$SessionXML = file_get_contents($protocol . $plex_server_ip . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
+	$session_xml = file_get_contents($protocol . $plex_server_ip . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
 	$cache_path = ROOT_DIR . '/assets/caches/session.xml';
-	if (file_exists($cache_path) && (filemtime($cache_path) > (time() - 30)))
-		{
-		$SessionCache = simplexml_load_file($cache_path);
-		return $SessionCache;
-		}
-	  else
-		{
-		if (!file_exists($cache_path))
-			{
-			touch($cache_path);
-			}
-
-		file_put_contents($cache_path, $SessionXML, LOCK_EX);
-		$SessionCache = simplexml_load_file($cache_path);
-		return $SessionCache;
-		}
-	}
+	file_put_contents($cache_path, $session_xml);
+	$session_cache = simplexml_load_file($cache_path);
+	return $session_cache;
+}
 
 function BuildImageCache($CoverArt, $Title)
 	{
@@ -498,7 +484,6 @@ function makeRecentlyViewed()
 
 function makeRecentlyAdded()
 	{
-	global $plex_port;
 	$plexNewestXML = xml_cache('/library/recentlyAdded', 'recentlyadded/recentlyAdded');
 	echo '<div class="col-md-10 col-sm-offset-1">';
 	echo '<div id="carousel-example-generic" class=" carousel slide">';
@@ -648,13 +633,12 @@ function makeRecentlyAdded()
 
 function makeNowPlaying()
 	{
-	global $plex_port;
-	$plexSessionXML = SessionCache();
-	if (!$plexSessionXML)
+	$plex_session_xml = getSession();
+	if (!$plex_session_xml)
 		{
 		makeRecentlyViewed();
 		}
-	elseif (count($plexSessionXML->Video) == 0)
+	elseif (count($plex_session_xml->Video) == 0)
 		{
 		makeRecentlyAdded();
 		}
@@ -663,7 +647,7 @@ function makeNowPlaying()
 		$i = 0; // Initiate and assign a value to i & t
 		$t = 0; // T is the total amount of sessions
 		echo '<div class="col-md-10 col-sm-offset-1">';
-		foreach($plexSessionXML->Video as $sessionInfo)
+		foreach($plex_session_xml->Video as $sessionInfo)
 			{
 			$i++; // Increment i every pass through the array
 			$mediaKey = $sessionInfo['key'];
@@ -679,13 +663,10 @@ function makeNowPlaying()
 				$coverArt = $mediaXML->Video['thumb'];
 				$movieTitle = $mediaXML->Video['title'];
 				$movieYear = $mediaXML->Video['year'];
-				$duration = $plexSessionXML->Video[$i - 1]['duration'];
-				$viewOffset = $plexSessionXML->Video[$i - 1]['viewOffset'];
+				$duration = $plex_session_xml->Video[$i - 1]['duration'];
+				$viewOffset = $plex_session_xml->Video[$i - 1]['viewOffset'];
 				$progress = sprintf('%.0f', ($viewOffset / $duration) * 100);
-				$user = $plexSessionXML->Video[$i - 1]->User['title'];
-				$device = $plexSessionXML->Video[$i - 1]->Player['title'];
-				$state = $plexSessionXML->Video[$i - 1]->Player['state'];
-				$platform = $plexSessionXML->Video[$i - 1]->Player['platform'];
+				$state = $plex_session_xml->Video[$i - 1]->Player['state'];
 
 				// Truncated Summary
 
@@ -740,8 +721,6 @@ function makeNowPlaying()
 					{
 					echo '<span class="fa fa-pause"></span>';
 					}
-
-				echo '<p class="exolight">' . $platform . '</p>';
 				}
 			  elseif ($type == "episode")
 				{
@@ -754,13 +733,10 @@ function makeNowPlaying()
 				$episodeSummary = $mediaXML->Video['summary'];
 				$episodeSeason = sprintf("%02d", ($mediaXML->Video['parentIndex']));
 				$episodeNumber = sprintf("%02d", ($mediaXML->Video['index']));
-				$duration = $plexSessionXML->Video[$i - 1]['duration'];
-				$viewOffset = $plexSessionXML->Video[$i - 1]['viewOffset'];
+				$duration = $plex_session_xml->Video[$i - 1]['duration'];
+				$viewOffset = $plex_session_xml->Video[$i - 1]['viewOffset'];
 				$progress = sprintf('%.0f', ($viewOffset / $duration) * 100);
-				$user = $plexSessionXML->Video[$i - 1]->User['title'];
-				$device = $plexSessionXML->Video[$i - 1]->Player['title'];
-				$state = $plexSessionXML->Video[$i - 1]->Player['state'];
-				$platform = $plexSessionXML->Video[$i - 1]->Player['platform'];
+				$state = $plex_session_xml->Video[$i - 1]->Player['state'];
 
 			// Truncated Summary
 
@@ -819,8 +795,6 @@ function makeNowPlaying()
 				{
 				echo '<span class="fa fa-pause"></span>';
 				}
-
-			echo '<p class="exolight">' . $platform . '</p>';
 			}
 
 		echo "</div>";
@@ -840,24 +814,23 @@ function makeNowPlaying()
 
 function getTranscodeSessions()
 	{
-	$plexSessionXML = SessionCache();
-	if (count($plexSessionXML->Video) > 0):
+	global $plex_session_xml;
+	if (count($plex_session_xml->Video) > 0) {
 		$i = 0; // i is the variable that gets iterated each pass through the array
 		$t = 0; // t is the total amount of sessions
 		$transcodeSessions = 0; // this is the number of active transcodes
-		foreach($plexSessionXML->Video as $sessionInfo):
+		foreach($plex_session_xml->Video as $sessionInfo) {
 			$t++;
-		endforeach;
-		foreach($plexSessionXML->Video as $sessionInfo):
-			if ($sessionInfo->TranscodeSession['videoDecision'] == 'transcode')
-				{
+		}
+		foreach($plex_session_xml->Video as $sessionInfo) {
+			if ($sessionInfo->TranscodeSession['videoDecision'] == 'transcode') {
 				$transcodeSessions++;
-				};
+			}
 			$i++; // Increment i every pass through the array
-		endforeach;
-		return $transcodeSessions;
-	endif;
+		}
+		return $transcode_sessions;
 	}
+}
 
 function countWords($string)
 	{

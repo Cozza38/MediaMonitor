@@ -8,14 +8,14 @@
 	// You will only notice the scrolling feature when there are multiple
 	// shows being watched at the same time.
 
-	$plexSessionXML = SessionCache();
+	$plex_session_xml = getSession();
 
 	// See if Plex Media Server is online and how many people are watching.
-	if (!$plexSessionXML) {
+	if (!$plex_session_xml) {
     $title = 'Recently Viewed';
 	} else {
 		// If Plex Media Server is online.
-		if (count($plexSessionXML->Video) == 0) {
+		if (count($plex_session_xml->Video) == 0) {
 			$title = 'Recently Added';
 		} else {
 			$title = 'Now Playing';

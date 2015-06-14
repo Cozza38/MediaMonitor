@@ -291,7 +291,7 @@ $detect = new Mobile_Detect;
 
 			var refreshIdfastest = setInterval(function () {
 				$plex_check_refresh.load('assets/php/plex_check_ajax.php');
-			},10000); // at 3 & 5 seconds python was crashing.
+			}, 10000); // at 3 & 5 seconds python was crashing.
 
 			var refreshIdfastest = setInterval(function () {
 				$system_load_refresh.load('assets/php/system_load_ajax.php');
@@ -301,18 +301,6 @@ $detect = new Mobile_Detect;
 				$services_refresh.load("assets/php/services_ajax.php");
 			},30000); // 30 seconds
 
-			var refreshId30 = setInterval(function () {
-				$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
-			},30000); // 30 seconds
-
-			var refreshId30 = setInterval(function () {
-				$now_playing_refresh.load("assets/php/now_playing_ajax.php");
-			},30000); // 30 seconds
-
-			var refreshId30 = setInterval(function () {
-				$transcodeSessions.load("assets/php/transcode_sessions_ajax.php");
-			},30000); // 30 seconds
-
 			var refreshIdslow = setInterval(function () {
 				$disk_space_refresh.load('assets/php/disk_space_ajax.php');
 			},60000*2); // 2 minutes
@@ -320,6 +308,66 @@ $detect = new Mobile_Detect;
 			var refreshtopleft = setInterval(function () {
 				_refresh.load('assets/php/left_column_mid_ajax.php');
 			},60000*30); // 30 minutes
+
+			// Load these sections only if Plex has changed states
+			var statusFile = "/assets/caches/plexstatusfile2.txt";
+			var progressFile = '/assets/caches/plexprogress.txt';
+
+			var refreshconditional = setInterval(function () {
+				if (localStorage["resourcemodified"]) {
+					$.ajax({
+						url: statusFile,
+						type: "head",
+						success: function (res, code, xhr) {
+							console.log("Checking to see if plexcheckfile2 changed." + localStorage["resourcemodified"] + " to " + xhr.getResponseHeader("Last-Modified"))
+							if (localStorage["resourcemodified"] != xhr.getResponseHeader("Last-Modified")) getResource1();
+						}
+					})
+				} else getResource1();
+
+				function getResource1() {
+					$.ajax({
+						url: statusFile,
+						type: "get",
+						cache: false,
+						success: function (res, code, xhr) {
+							localStorage["resourcemodified"] = xhr.getResponseHeader("Last-Modified");
+							console.log("Updating our cache and refreshing appropriate divs.");
+							$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
+							$now_playing_refresh.load("assets/php/now_playing_ajax.php");
+							$transcodeSessions.load("assets/php/transcode_sessions_ajax.php");
+						}
+					})
+				}
+			}, 5000); // 5 seconds
+
+			var refreshconditional = setInterval(function () {
+				if (localStorage["resourcemodified"]) {
+					$.ajax({
+						url: progressFile,
+						type: "head",
+						success: function (res, code, xhr) {
+							console.log("Checking to see if plexprogress changed." + localStorage["resourcemodified"] + " to " + xhr.getResponseHeader("Last-Modified"))
+							if (localStorage["resourcemodified"] != xhr.getResponseHeader("Last-Modified")) getResource2();
+						}
+					})
+				} else getResource2();
+
+				function getResource2() {
+					$.ajax({
+						url: progressFile,
+						type: "get",
+						cache: false,
+						success: function (res, code, xhr) {
+							localStorage["resourcemodified"] = xhr.getResponseHeader("Last-Modified");
+							console.log("Updating our cache and refreshing appropriate divs.");
+							$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
+							$now_playing_refresh.load("assets/php/now_playing_ajax.php");
+							$transcodeSessions.load("assets/php/transcode_sessions_ajax.php");
+						}
+					})
+				}
+			}, 5000); // 5 seconds
 
 			// Change the size of the now playing div to match the client size
 			function doResizeNowPlaying() {
