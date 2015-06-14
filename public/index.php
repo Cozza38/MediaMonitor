@@ -1,18 +1,51 @@
-<!DOCTYPE html>
 <?php
-chdir(dirname(__DIR__));
 
-error_reporting(E_ALL | E_STRICT);
+use Zend\Stratigility\MiddlewarePipe;
+use Zend\Diactoros\Server;
+
+chdir(dirname(__DIR__));
 ini_set('display_errors', true);
 
+// Decline static file requests back to the PHP built-in webserver
+if (php_sapi_name() === 'cli-server') {
+    $path = realpath(__DIR__ . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+    if (__FILE__ !== $path && is_file($path)) {
+        return false;
+    }
+    unset($path);
+}
+
+include 'vendor/autoload.php';
+
+$app = new MiddlewarePipe();
+$server = Server::createServer($app, $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
+
+$app->pipe('/', function($req, $res, $next) {
+    if ($req->getUri()->getPath() !== '/') {
+        return $next($req, $res);
+    }
+    return $res->end('Hello world');
+});
+
+$app->pipe('/api', function($req, $res, $next) {
+    return $res->end(print_r($next, false));
+});
+
+$app->pipe('/', function($error, $req, $res, $next) {
+    return $res->end('Not Found');
+});
+
+$server->listen();
 
 
-include 'init.php';
-include ROOT_DIR . '/assets/php/functions.php';
-include ROOT_DIR . '/assets/php/Mobile_Detect.php';
+return;
+include 'php/functions.php';
+include 'php/Mobile_Detect.php';
 
 $detect = new Mobile_Detect;
 ?>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
