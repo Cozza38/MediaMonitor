@@ -1,8 +1,8 @@
 <?php
 
-use Zend\Stratigility\MiddlewarePipe;
-use Zend\Diactoros\Server;
-use MediaMonitor\Middleware\Home as HomeMiddleware;
+use Zend\ServiceManager\ServiceManager;
+use Zend\ServiceManager\Config as ServiceManagerConfig;
+use Zend\Stdlib\ArrayUtils;
 
 chdir(dirname(__DIR__));
 ini_set('display_errors', true);
@@ -18,19 +18,14 @@ if (php_sapi_name() === 'cli-server') {
 
 include 'vendor/autoload.php';
 
-$app = new MiddlewarePipe();
-$server = Server::createServer($app, $_SERVER, $_GET, $_POST, $_COOKIE, $_FILES);
+$config = array();
+foreach (glob('config/{,*.}{global,local}.php', GLOB_BRACE) as $file) {
+    $config = ArrayUtils::merge($config, include $file);
+}
+$sl = new ServiceManager(new ServiceManagerConfig($config['service_manager']));
+$sl->setService('config', $config);
 
-$app->pipe('/', new HomeMiddleware);
-
-$app->pipe('/api', function($req, $res, $next) {
-    return $res->end(print_r($next, false));
-});
-
-$app->pipe('/', function($error, $req, $res, $next) {
-    return $res->end('Not Found');
-});
+$server = $sl->get('server');
 
 $server->listen();
-
 

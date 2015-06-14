@@ -3,18 +3,27 @@
 namespace MediaMonitor\Middleware;
 
 use Middleware\Middleware;
+use Twig_Environment as Twig;
 
 class Home
 {
+    protected $twig;
+
+    public function __construct(Twig $twig)
+    {
+        $this->twig = $twig;
+    }
+
+
     public function __invoke($req, $res, $next)
     {
         if ($req->getUri()->getPath() !== '/') {
             return $next($req, $res);
         }
-        ob_start();
-        include 'view/index.phtml';
-        $content = ob_get_clean();
-        return $res->end($content);
+
+        return $res->end(
+            $this->twig->render('index.html', array())
+        );
     }
 }
 
