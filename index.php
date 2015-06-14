@@ -291,60 +291,35 @@ $detect = new Mobile_Detect;
 
 			var refreshIdfastest = setInterval(function () {
 				$plex_check_refresh.load('assets/php/plex_check_ajax.php');
-			}, 10000); // at 3 & 5 seconds python was crashing.
+			},10000); // at 3 & 5 seconds python was crashing.
 
 			var refreshIdfastest = setInterval(function () {
 				$system_load_refresh.load('assets/php/system_load_ajax.php');
-			}, 5000); // 5 seconds
+			},5000); // 5 seconds
 
 			var refreshId30 = setInterval(function () {
 				$services_refresh.load("assets/php/services_ajax.php");
-			}, 30000); // 30 seconds
+			},30000); // 30 seconds
 
-			var refreshId60 = setInterval(function () {
+			var refreshId30 = setInterval(function () {
+				$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
+			},30000); // 30 seconds
+
+			var refreshId30 = setInterval(function () {
+				$now_playing_refresh.load("assets/php/now_playing_ajax.php");
+			},30000); // 30 seconds
+
+			var refreshId30 = setInterval(function () {
 				$transcodeSessions.load("assets/php/transcode_sessions_ajax.php");
-			}, 60000); // 60 seconds
+			},30000); // 30 seconds
 
 			var refreshIdslow = setInterval(function () {
 				$disk_space_refresh.load('assets/php/disk_space_ajax.php');
-			}, 120000); // 2 minutes
+			},60000*2); // 2 minutes
 
 			var refreshtopleft = setInterval(function () {
 				_refresh.load('assets/php/left_column_mid_ajax.php');
-			}, 300000); // 5 minutes
-
-			// Load these sections only if Plex has changed states
-			var theResource = "assets/caches/plexcheckfile2.txt";
-
-			var refreshconditional = setInterval(function () {
-				if (localStorage["resourcemodified"]) {
-					$.ajax({
-						url: theResource,
-						type: "head",
-						success: function (res, code, xhr) {
-							console.log("Checking to see if plexcheckfile2 changed." + localStorage["resourcemodified"] + " to " + xhr.getResponseHeader("Last-Modified"))
-							if (localStorage["resourcemodified"] != xhr.getResponseHeader("Last-Modified")) getResource();
-						}
-					})
-
-				} else getResource();
-
-				function getResource() {
-					$.ajax({
-						url: theResource,
-						type: "get",
-						cache: false,
-						success: function (res, code, xhr) {
-							localStorage["resourcemodified"] = xhr.getResponseHeader("Last-Modified");
-							console.log("Updating our cache and refreshing appropriate divs.");
-							$left_column_mid_refresh.load('assets/php/left_column_mid_ajax.php');
-							$now_playing_title_refresh.load("assets/php/now_playing_title_ajax.php");
-							$now_playing_refresh.load("assets/php/now_playing_ajax.php");
-							$transcodeSessions.load("assets/php/transcode_sessions_ajax.php");
-						}
-					})
-				}
-			}, 5000); // 5 seconds
+			},60000*30); // 30 minutes
 
 			// Change the size of the now playing div to match the client size
 			function doResizeNowPlaying() {

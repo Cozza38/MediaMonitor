@@ -1,6 +1,6 @@
 <?php
 $config_path = ROOT_DIR . '/private/config.ini'; //path to config file, recommend you place it outside of web root
-Ini_Set('display_errors', false);
+Ini_Set('display_errors', true);
 include (ROOT_DIR . '/init.php');
 
 $config = parse_ini_file($config_path, true);
@@ -373,42 +373,28 @@ function getTraktHistory($traktUsername, $type)
 		}
 	}
 
-function XMLCache($Path, $Name)
+function xml_cache($url, $cache_name)
 	{
 	global $plex_server_ip;
 	global $plex_port;
 	global $plex_ssl;
 	global $plexToken;
 	$protocol = protocolCheck($plex_ssl);
-	$XML = file_get_contents($protocol . $plex_server_ip . ':' . $plex_port . "{$Path}/?X-Plex-Token=" . $plexToken);
-	$CachePath = ROOT_DIR . "/assets/caches/{$Name}.xml";
-	if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 60)))
-		{
-		$XMLCache = simplexml_load_file($CachePath);
-		return $XMLCache;
+	$cache_xml = file_get_contents($protocol . $plex_server_ip . ':' . $plex_port . "{$url}/?X-Plex-Token=" . $plexToken);
+	$cache_path = ROOT_DIR . "/assets/caches/{$cache_name}.xml";
+	// Check to see if we have already cached within the last 60 seconds
+	if (file_exists($cache_path) && (filemtime($cache_path) > (time() - 60))) {
+		$xml_cache = simplexml_load_file($cache_path);
+		return $xml_cache;
+	} else {
+		if (!file_exists($cache_path)) {
+			touch($cache_path);
 		}
-	  else
-		{
-		if (!file_exists($CachePath))
-			{
-			touch($CachePath);
-			}
-
-		$XML_md5 = md5_file($XML);
-		$CachePath_md5 = md5_file($CachePath);
-		if ($XML_md5 == $CachePath_md5)
-			{
-			$XMLCache = simplexml_load_file($CachePath);
-			return $XMLCache;
-			}
-		  else
-			{
-			file_put_contents($CachePath, $XML, LOCK_EX);
-			$XMLCache = simplexml_load_file($CachePath);
-			return $XMLCache;
-			}
-		}
+		file_put_contents($cache_path, $cache_xml, LOCK_EX);
+		$xml_cache = simplexml_load_file($cache_path);
+		return $xml_cache;
 	}
+}
 
 function SessionCache()
 	{
@@ -418,21 +404,21 @@ function SessionCache()
 	global $plexToken;
 	$protocol = protocolCheck($plex_ssl);
 	$SessionXML = file_get_contents($protocol . $plex_server_ip . ':' . $plex_port . '/status/sessions/?X-Plex-Token=' . $plexToken);
-	$CachePath = ROOT_DIR . '/assets/caches/session.xml';
-	if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 30)))
+	$cache_path = ROOT_DIR . '/assets/caches/session.xml';
+	if (file_exists($cache_path) && (filemtime($cache_path) > (time() - 30)))
 		{
-		$SessionCache = simplexml_load_file($CachePath);
+		$SessionCache = simplexml_load_file($cache_path);
 		return $SessionCache;
 		}
 	  else
 		{
-		if (!file_exists($CachePath))
+		if (!file_exists($cache_path))
 			{
-			touch($CachePath);
+			touch($cache_path);
 			}
 
-		file_put_contents($CachePath, $SessionXML, LOCK_EX);
-		$SessionCache = simplexml_load_file($CachePath);
+		file_put_contents($cache_path, $SessionXML, LOCK_EX);
+		$SessionCache = simplexml_load_file($cache_path);
 		return $SessionCache;
 		}
 	}
@@ -445,9 +431,9 @@ function BuildImageCache($CoverArt, $Title)
     global $plexToken;
     // Curl was being weird with SSL, force to false
 	$protocol = protocolCheck('false');
-	$CachePath = ROOT_DIR . '/assets/caches/images/' . $Title . '.jpg';
+	$cache_path = ROOT_DIR . '/assets/caches/images/' . $Title . '.jpg';
 	$ch = curl_init($protocol . $plex_server_ip . ':' . $plex_port . $CoverArt . '/?X-Plex-Token=' . $plexToken);
-	$SaveCache = fopen($CachePath, "w");
+	$SaveCache = fopen($cache_path, "w");
 	curl_setopt($ch, CURLOPT_FILE, $SaveCache);
 	curl_setopt($ch, CURLOPT_HEADER, 0);
 	curl_exec($ch);
@@ -513,7 +499,7 @@ function makeRecentlyViewed()
 function makeRecentlyAdded()
 	{
 	global $plex_port;
-	$plexNewestXML = XMLCache('/library/recentlyAdded', 'recentlyadded/recentlyAdded');
+	$plexNewestXML = xml_cache('/library/recentlyAdded', 'recentlyadded/recentlyAdded');
 	echo '<div class="col-md-10 col-sm-offset-1">';
 	echo '<div id="carousel-example-generic" class=" carousel slide">';
 	echo '<div class="thumbnail">';
@@ -534,10 +520,10 @@ function makeRecentlyAdded()
 			$episodeParentKey = $media['parentKey'];
 			$episodeKey = $media['key'];
 			$seasonNumber = $media['title'];
-			$mediaXML = XMLCache($episodeParentKey, "recentlyadded/parentKey/$i");
+			$mediaXML = xml_cache($episodeParentKey, "recentlyadded/parentKey/$i");
 			$coverArt = $mediaXML->Directory['thumb'];
 			$showTitle = $mediaXML->Directory['title'];
-			$episodeXML = XMLCache($episodeKey, "recentlyadded/episodeKey/$i");
+			$episodeXML = xml_cache($episodeKey, "recentlyadded/episodeKey/$i");
 			$lastEP = $episodeXML->Video[count($episodeXML->Video) - 1];
 			$episodeNumber = $lastEP['index'];
 
@@ -565,8 +551,8 @@ function makeRecentlyAdded()
 			if ($coverArt != null)
 				{
 				$Sanitized_Title = Sanitize($showTitle);
-				$CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
-				if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24 * 60 * 60)))
+				$cache_path = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+				if (file_exists($cache_path) && (filemtime($cache_path) > (time() - 24 * 60 * 60)))
 					{
 					echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $showTitle . '">';
 					}
@@ -594,7 +580,7 @@ function makeRecentlyAdded()
 			// It's a Movie!
 
 			$movieKey = $media['key'];
-			$mediaXML = XMLCache($movieKey, "recentlyadded/movieKey/$i");
+			$mediaXML = xml_cache($movieKey, "recentlyadded/movieKey/$i");
 			$coverArt = $mediaXML->Video['thumb'];
 			$movieTitle = $mediaXML->Video['title'];
 			$movieYear = $mediaXML->Video['year'];
@@ -623,8 +609,8 @@ function makeRecentlyAdded()
 			if ($coverArt != null)
 				{
 				$Sanitized_Title = Sanitize($movieTitle);
-				$CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
-				if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24 * 60 * 60)))
+				$cache_path = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+				if (file_exists($cache_path) && (filemtime($cache_path) > (time() - 24 * 60 * 60)))
 					{
 					echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
 					}
@@ -682,7 +668,7 @@ function makeNowPlaying()
 			$i++; // Increment i every pass through the array
 			$mediaKey = $sessionInfo['key'];
 			$playerTitle = $sessionInfo->Player['title'];
-			$mediaXML = XMLCache($mediaKey, "nowPlaying_$i");
+			$mediaXML = xml_cache($mediaKey, "nowPlaying_$i");
 			$type = $mediaXML->Video['type'];
 			echo '<div class="thumbnail">';
 			if ($type == "movie")
@@ -699,6 +685,7 @@ function makeNowPlaying()
 				$user = $plexSessionXML->Video[$i - 1]->User['title'];
 				$device = $plexSessionXML->Video[$i - 1]->Player['title'];
 				$state = $plexSessionXML->Video[$i - 1]->Player['state'];
+				$platform = $plexSessionXML->Video[$i - 1]->Player['platform'];
 
 				// Truncated Summary
 
@@ -717,8 +704,8 @@ function makeNowPlaying()
 				if ($coverArt != null)
 					{
 					$Sanitized_Title = Sanitize($movieTitle);
-					$CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
-					if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24 * 60 * 60)))
+					$cache_path = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+					if (file_exists($cache_path) && (filemtime($cache_path) > (time() - 24 * 60 * 60)))
 						{
 						echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $movieTitle . '">';
 						}
@@ -754,14 +741,7 @@ function makeNowPlaying()
 					echo '<span class="fa fa-pause"></span>';
 					}
 
-				if ($user == "")
-					{
-					echo '<p class="exolight">' . $device . '</p>';
-					}
-				  else
-					{
-					echo '<p class="exolight">' . $user . '</p>';
-					}
+				echo '<p class="exolight">' . $platform . '</p>';
 				}
 			  elseif ($type == "episode")
 				{
@@ -772,14 +752,15 @@ function makeNowPlaying()
 				$showTitle = $mediaXML->Video['grandparentTitle'];
 				$episodeTitle = $mediaXML->Video['title'];
 				$episodeSummary = $mediaXML->Video['summary'];
-				$episodeSeason = $mediaXML->Video['parentIndex'];
-				$episodeNumber = $mediaXML->Video['index'];
+				$episodeSeason = sprintf("%02d", ($mediaXML->Video['parentIndex']));
+				$episodeNumber = sprintf("%02d", ($mediaXML->Video['index']));
 				$duration = $plexSessionXML->Video[$i - 1]['duration'];
 				$viewOffset = $plexSessionXML->Video[$i - 1]['viewOffset'];
 				$progress = sprintf('%.0f', ($viewOffset / $duration) * 100);
 				$user = $plexSessionXML->Video[$i - 1]->User['title'];
 				$device = $plexSessionXML->Video[$i - 1]->Player['title'];
 				$state = $plexSessionXML->Video[$i - 1]->Player['state'];
+				$platform = $plexSessionXML->Video[$i - 1]->Player['platform'];
 
 			// Truncated Summary
 
@@ -798,8 +779,8 @@ function makeNowPlaying()
 			if ($coverArt != null)
 				{
 				$Sanitized_Title = Sanitize($showTitle);
-				$CachePath = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
-				if (file_exists($CachePath) && (filemtime($CachePath) > (time() - 24 * 60 * 60)))
+				$cache_path = ROOT_DIR . '/assets/caches/images/' . $Sanitized_Title . '.jpg';
+				if (file_exists($cache_path) && (filemtime($cache_path) > (time() - 24 * 60 * 60)))
 					{
 					echo '<img src="assets/caches/images/' . ($Sanitized_Title) . '.jpg" alt="' . $showTitle . '">';
 					}
@@ -825,7 +806,7 @@ function makeNowPlaying()
 
 			echo '<div class="caption">';
 			echo '<h3 class="exoextralight" style="margin-top:5px;">' . $showTitle . '</h3>';
-			echo '<h4 class="exoextralight" style="margin-top:5px;">S' . $episodeSeason . 'E' . $episodeNumber . '- ' . $episodeTitle . '</h4>';
+			echo '<h4 class="exoextralight" style="margin-top:5px;">S' . $episodeSeason . 'E' . $episodeNumber . ' - ' . $episodeTitle . '</h4>';
 			echo '<p>' . $episodeSummary . '</p>';
 
 			// Playing/Paused Icons
@@ -839,14 +820,7 @@ function makeNowPlaying()
 				echo '<span class="fa fa-pause"></span>';
 				}
 
-			if ($user == "")
-				{
-				echo '<p class="exolight">' . $device . '</p>';
-				}
-			  else
-				{
-				echo '<p class="exolight">' . $user . '</p>';
-				}
+			echo '<p class="exolight">' . $platform . '</p>';
 			}
 
 		echo "</div>";

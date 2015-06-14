@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <?php
 ini_set('display_errors', true);
 include '../../init.php';
