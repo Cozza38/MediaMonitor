@@ -5,10 +5,18 @@
   "license": "proprietary",
   "require": {
     "twig/twig": "~1.0",
-    "zendframework/zend-diactoros": "~1.0",
+    "psr/http-message": "~1.0",
     "zendframework/zend-stratigility": "~1.0"
   },
   "require-dev": {
     "phpunit/phpunit": "~4.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "MediaMonitor\\": "src/"
+    },
+    "files": [
+      "php/Mobile_Detect.php"
+    ]
   }
 }
