@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <?php
+chdir(dirname(__DIR__));
+
 error_reporting(E_ALL | E_STRICT);
 ini_set('display_errors', true);
+
+
 
 include 'init.php';
 include ROOT_DIR . '/assets/php/functions.php';
