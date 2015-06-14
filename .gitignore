@@ -1,6 +1,7 @@
 assets/caches/plex_token.txt
-assets/caches/plexcheckfile1.txt
-assets/caches/plexcheckfile2.txt
+assets/caches/plexstatusfile1.txt
+assets/caches/plexstatusfile2.txt
+assets/caches/plexprogress.txt
 assets/php/analyticstracking.php
 assets/caches/images/*
 assets/caches/recentlyadded/episodeKey/*
